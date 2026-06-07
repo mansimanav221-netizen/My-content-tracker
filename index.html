@@ -180,7 +180,25 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   .modal-header { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
   .modal-close { margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; line-height: 1; }
-  .modal-title { color: var(--text); font-size: 18px; font-family: 'Cinzel', serif; font-weight: 400; margin-bottom: 24px; line-height: 1.4; }
+  
+  .m-title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px dashed #4a1a1a;
+    color: var(--text);
+    font-size: 18px;
+    font-family: 'Cinzel', serif;
+    font-weight: 400;
+    margin-bottom: 24px;
+    padding-bottom: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .m-title-input:focus, .m-title-input:hover {
+    border-bottom-color: var(--red-light);
+  }
+
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
   .field label { display: block; font-size: 10px; color: #6a2020; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Cinzel', serif; }
   .field select, .field input[type="date"] {
@@ -255,7 +273,10 @@
       <span class="badge" id="m-type"></span>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-    <div class="modal-title" id="m-title"></div>
+    
+    <!-- Title is now an editable text input -->
+    <input type="text" id="m-title" class="m-title-input" placeholder="Enter video idea or title..." />
+    
     <div class="field-grid">
       <div class="field">
         <label>Status</label>
@@ -279,14 +300,17 @@
 </div>
 
 <script>
+// Expanded Statuses to bifurcate Film vs Filmed and Edit vs Edited
 const STATUS_COLORS = {
-  Idea:      { bg:'#150000', border:'#7a0000', text:'#ff3333', dot:'#cc0000' },
-  Scripting: { bg:'#0a0a00', border:'#2a2a00', text:'#f0d060', dot:'#c8a820' },
-  Filming:   { bg:'#0a0f0a', border:'#0a3a0a', text:'#60d060', dot:'#22a022' },
-  Editing:   { bg:'#1a0000', border:'#5a0000', text:'#ff6666', dot:'#ee2222' },
-  Live:      { bg:'#0a0000', border:'#440000', text:'#ffffff', dot:'#cc0000' },
+  'Idea':      { bg:'#150000', border:'#7a0000', text:'#ff3333', dot:'#cc0000' },
+  'Scripting': { bg:'#0a0a00', border:'#2a2a00', text:'#f0d060', dot:'#c8a820' },
+  'To Film':   { bg:'#0a0f0a', border:'#0a3a0a', text:'#60d060', dot:'#22a022' },
+  'Filmed':    { bg:'#051a05', border:'#1a5a1a', text:'#80ff80', dot:'#33cc33' },
+  'To Edit':   { bg:'#1a0000', border:'#5a0000', text:'#ff6666', dot:'#ee2222' },
+  'Edited':    { bg:'#2a001a', border:'#7a004a', text:'#ff80bf', dot:'#e60073' },
+  'Live':      { bg:'#0a0000', border:'#440000', text:'#ffffff', dot:'#cc0000' },
 };
-const STATUSES = ['Idea','Scripting','Filming','Editing','Live'];
+const STATUSES = ['Idea','Scripting','To Film','Filmed','To Edit','Edited','Live'];
 const TYPES = { A:{label:'Story',icon:'👻'}, B:{label:'Review',icon:'🎬'}, C:{label:'Why',icon:'🧠'} };
 
 const RAW = [
@@ -329,7 +353,19 @@ function buildVideos() {
 }
 
 function loadData() {
-  try { const s = localStorage.getItem(STORAGE_KEY); if (s) return JSON.parse(s); } catch {}
+  try { 
+    const s = localStorage.getItem(STORAGE_KEY); 
+    if (s) {
+      let parsed = JSON.parse(s);
+      // Migration to prevent breaking if user already saved with old statuses
+      parsed = parsed.map(v => {
+        if(v.status === 'Filming') v.status = 'To Film';
+        if(v.status === 'Editing') v.status = 'To Edit';
+        return v;
+      });
+      return parsed;
+    }
+  } catch {}
   return buildVideos();
 }
 function saveData() {
@@ -495,7 +531,10 @@ function openModal(id) {
   const c = STATUS_COLORS[v.status];
   document.getElementById('m-num').textContent = `Video #${v.videoNum}`;
   document.getElementById('m-type').textContent = `${t.icon} ${t.label}`;
-  document.getElementById('m-title').textContent = v.title;
+  
+  // Set the editable title input value
+  document.getElementById('m-title').value = v.title;
+  
   const sel = document.getElementById('m-status');
   sel.innerHTML = STATUSES.map(s => `<option value="${s}" ${v.status===s?'selected':''}>${s}</option>`).join('');
   sel.style.background = c.bg; sel.style.border = `1px solid ${c.border}`; sel.style.color = c.text;
@@ -534,12 +573,16 @@ function toggleModalScript() {
 
 function saveModal() {
   if (!modalId) return;
+  
+  // Update video details including the new title
   updateVideo(modalId, {
+    title: document.getElementById('m-title').value,
     status: document.getElementById('m-status').value,
     publishDate: document.getElementById('m-date').value,
     scriptWritten: document.getElementById('m-script').checked,
     notes: document.getElementById('m-notes').value,
   });
+  
   renderStats();
   render();
   document.getElementById('modal-overlay').classList.add('hidden');
