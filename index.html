@@ -5,160 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Horror Content Grimoire</title>
 <style>
+  /* All your styles remain the same as the previous version */
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #080000;
-    --surface: #100000;
-    --border: #2a0000;
-    --red: #cc0000;
-    --red-light: #ff3333;
-    --red-dim: #7a0000;
-    --text: #ffffff;
-    --text-dim: #8a5555;
-    --text-muted: #4a1a1a;
-    --gold: #c8a820;
-    --green: #22a022;
-  }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Crimson Text', Georgia, serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 10%, rgba(40,0,0,0.8) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 90%, rgba(20,0,0,0.8) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
+  :root { --bg: #080000; --surface: #100000; --border: #2a0000; --red: #cc0000; --red-light: #ff3333; --red-dim: #7a0000; --text: #ffffff; --text-dim: #8a5555; --text-muted: #4a1a1a; --gold: #c8a820; --green: #22a022; }
+  body { background: var(--bg); color: var(--text); font-family: 'Crimson Text', Georgia, serif; min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 10%, rgba(40,0,0,0.8) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(20,0,0,0.8) 0%, transparent 50%); pointer-events: none; z-index: 0; }
   #app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 20px 80px; }
-
-  /* TOP UTILITIES */
-  .top-utils {
-    display: flex; justify-content: space-between; align-items: center; 
-    padding: 16px 0; font-family: 'Cinzel', serif; font-size: 11px;
-  }
-  .util-btn {
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim);
-    padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s;
-  }
+  .top-utils { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; font-family: 'Cinzel', serif; font-size: 11px; }
+  .util-btn { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim); padding: 6px 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
   .util-btn:hover { border-color: var(--red); color: var(--text); }
-  
-  .add-idea-btn {
-    background: linear-gradient(135deg, #4a0000, #990000); border: 1px solid #ff3333;
-    color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600;
-    cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(204,0,0,0.4);
-    letter-spacing: 1px;
-  }
+  .add-idea-btn { background: linear-gradient(135deg, #4a0000, #990000); border: 1px solid #ff3333; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(204,0,0,0.4); letter-spacing: 1px; }
   .add-idea-btn:hover { box-shadow: 0 0 25px rgba(255,51,51,0.6); transform: scale(1.05); }
-
-  /* HEADER */
   header { text-align: center; padding: 12px 0 32px; }
   .eyebrow { font-size: 12px; letter-spacing: 6px; color: var(--red); text-transform: uppercase; margin-bottom: 12px; font-family: 'Cinzel', serif; }
-  h1 {
-    font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 400;
-    background: linear-gradient(135deg, #e2d9f3 0%, #ff3333 50%, #e2d9f3 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px;
-  }
+  h1 { font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 400; background: linear-gradient(135deg, #e2d9f3 0%, #ff3333 50%, #e2d9f3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px; }
   .subtitle { color: var(--text-dim); margin-top: 10px; font-size: 15px; letter-spacing: 1px; font-style: italic; }
-
-  /* STATS */
   .stats { display: flex; justify-content: center; gap: 28px; margin-top: 28px; flex-wrap: wrap; }
   .stat { text-align: center; }
   .stat-num { font-size: 22px; font-weight: 600; font-family: 'Cinzel', serif; }
   .stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
-
-  /* CONTROLS (Search & Tabs & Filters) */
-  .controls-wrapper {
-    background: rgba(15,0,0,0.4); border: 1px solid #1a0808; border-radius: 12px;
-    padding: 16px; margin: 32px 0 24px; display: flex; flex-direction: column; gap: 16px;
-  }
+  .controls-wrapper { background: rgba(15,0,0,0.4); border: 1px solid #1a0808; border-radius: 12px; padding: 16px; margin: 32px 0 24px; display: flex; flex-direction: column; gap: 16px; }
   .controls-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-  
-  .search-bar {
-    background: var(--surface); border: 1px solid var(--border); color: var(--text);
-    padding: 8px 16px; border-radius: 20px; font-family: 'Crimson Text', serif;
-    font-size: 14px; width: 100%; max-width: 300px; outline: none; transition: border 0.2s;
-  }
+  .search-bar { background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-family: 'Crimson Text', serif; font-size: 14px; width: 100%; max-width: 300px; outline: none; transition: border 0.2s; }
   .search-bar:focus { border-color: var(--red-light); }
-
   .tabs { display: flex; gap: 6px; }
-  .tab {
-    padding: 7px 18px; border-radius: 6px; border: 1px solid var(--border);
-    background: rgba(255,255,255,0.02); color: var(--text-muted); cursor: pointer;
-    font-size: 13px; letter-spacing: 1px; font-family: 'Crimson Text', serif; transition: 0.2s;
-  }
+  .tab { padding: 7px 18px; border-radius: 6px; border: 1px solid var(--border); background: rgba(255,255,255,0.02); color: var(--text-muted); cursor: pointer; font-size: 13px; letter-spacing: 1px; font-family: 'Crimson Text', serif; transition: 0.2s; }
   .tab.active { border-color: var(--red); background: rgba(180,0,0,0.15); color: var(--red-light); }
   .tab:hover:not(.active) { border-color: var(--red-dim); color: var(--text-dim); }
-
   .filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .filter-btn {
-    padding: 4px 14px; border-radius: 20px; border: 1px solid #150000;
-    background: transparent; color: #4a1a1a; cursor: pointer; font-size: 12px;
-    letter-spacing: 1px; transition: 0.2s; font-family: 'Crimson Text', serif;
-  }
+  .filter-btn { padding: 4px 14px; border-radius: 20px; border: 1px solid #150000; background: transparent; color: #4a1a1a; cursor: pointer; font-size: 12px; letter-spacing: 1px; transition: 0.2s; font-family: 'Crimson Text', serif; }
   .filter-btn.active { border-color: var(--red-dim); background: rgba(180,0,0,0.2); color: var(--red-light); }
-
-  /* BOARD (Drag & Drop) */
   .board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 20px; }
-  .board-col {
-    min-width: 260px; flex: 0 0 260px; background: rgba(255,255,255,0.015);
-    border-radius: 12px; padding: 14px; transition: background 0.2s;
-  }
+  .board-col { min-width: 260px; flex: 0 0 260px; background: rgba(255,255,255,0.015); border-radius: 12px; padding: 14px; transition: background 0.2s; }
   .board-col.drag-over { background: rgba(180,0,0,0.08); border-style: dashed !important; }
   .col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
   .col-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .col-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-family: 'Cinzel', serif; }
   .col-count { margin-left: auto; color: var(--text-muted); font-size: 12px; }
-  
   .cards { display: flex; flex-direction: column; gap: 10px; min-height: 50px; }
-  .card {
-    background: var(--surface); border: 1px solid #1a0808; border-radius: 8px; padding: 12px;
-    cursor: grab; transition: border-color 0.2s, transform 0.15s; border-left: 3px solid transparent;
-  }
+  .card { background: var(--surface); border: 1px solid #1a0808; border-radius: 8px; padding: 12px; cursor: grab; transition: border-color 0.2s, transform 0.15s; border-left: 3px solid transparent; }
   .card:active { cursor: grabbing; }
   .card:hover { transform: translateY(-2px); }
-  
   .card-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
   .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #150000; color: var(--red); letter-spacing: 0.5px; }
   .badge.short { background: #0a1a2a; color: #40a0ff; }
   .badge.plat { background: #1a1a1a; color: #aaa; }
-  
   .card-title { font-size: 13px; color: #f0dada; line-height: 1.4; margin-bottom: 8px; }
-  
-  /* Progress Bar */
   .progress-wrap { background: #111; height: 4px; border-radius: 2px; width: 100%; margin-top: auto; overflow: hidden; }
   .progress-bar { height: 100%; background: var(--red-light); transition: width 0.3s; }
-  
   .card-footer { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 6px; }
-
-  /* TABLE */
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
-    padding: 10px 14px; text-align: left; color: var(--text-muted); letter-spacing: 1px;
-    font-size: 10px; text-transform: uppercase; border-bottom: 1px solid #1a0000;
-    font-family: 'Cinzel', serif; cursor: pointer; transition: color 0.2s;
-  }
+  thead th { padding: 10px 14px; text-align: left; color: var(--text-muted); letter-spacing: 1px; font-size: 10px; text-transform: uppercase; border-bottom: 1px solid #1a0000; font-family: 'Cinzel', serif; cursor: pointer; transition: color 0.2s; }
   thead th:hover { color: var(--red-light); }
   tbody tr { border-bottom: 1px solid #0a0000; cursor: pointer; transition: background 0.15s; }
   tbody tr:hover { background: rgba(180,0,0,0.06); }
   td { padding: 9px 14px; vertical-align: middle; }
   .td-title { color: #f0dada; max-width: 200px; font-weight: 600; }
   select.status-select { border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; font-family: 'Crimson Text', serif; }
-
-  /* CALENDAR */
   .cal-nav { display: flex; align-items: center; justify-content: center; gap: 24px; margin-bottom: 20px; }
   .cal-nav button { background: none; border: 1px solid #2a0000; color: var(--red); border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 16px; }
   .cal-month { color: var(--red-light); letter-spacing: 3px; font-size: 16px; font-family: 'Cinzel', serif; }
@@ -169,53 +74,29 @@
   .cal-day { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
   .cal-cell.today .cal-day { color: var(--red-light); font-weight: 600; }
   .cal-event { font-size: 10px; border-radius: 3px; padding: 3px 5px; margin-bottom: 3px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200;
-    display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);
-  }
-  .modal {
-    background: #0d0a1a; border: 1px solid #2a0000; border-radius: 16px; padding: 32px;
-    max-width: 600px; width: 100%; box-shadow: 0 0 60px rgba(180,0,0,0.2); animation: fadeUp 0.2s ease;
-    max-height: 90vh; overflow-y: auto;
-  }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .modal { background: #0d0a1a; border: 1px solid #2a0000; border-radius: 16px; padding: 32px; max-width: 600px; width: 100%; box-shadow: 0 0 60px rgba(180,0,0,0.2); animation: fadeUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   .modal-header { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
   .modal-close { margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; }
-  
-  .m-title-input {
-    width: 100%; background: transparent; border: none; border-bottom: 1px dashed #4a1a1a;
-    color: var(--text); font-size: 20px; font-family: 'Cinzel', serif; margin-bottom: 24px; padding-bottom: 4px; outline: none;
-  }
+  .m-title-input { width: 100%; background: transparent; border: none; border-bottom: 1px dashed #4a1a1a; color: var(--text); font-size: 20px; font-family: 'Cinzel', serif; margin-bottom: 24px; padding-bottom: 4px; outline: none; }
   .m-title-input:focus { border-bottom-color: var(--red-light); }
-
   .modal-section-title { font-family: 'Cinzel', serif; font-size: 11px; color: var(--red); letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid #2a0000; padding-bottom: 4px; margin: 20px 0 12px; }
-
   .tag-group { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .tag-toggle {
-    padding: 4px 12px; border-radius: 20px; border: 1px solid #2a0000; background: #0a0000;
-    color: #6a6a6a; font-size: 11px; cursor: pointer; font-family: 'Crimson Text', serif; user-select: none;
-  }
+  .tag-toggle { padding: 4px 12px; border-radius: 20px; border: 1px solid #2a0000; background: #0a0000; color: #6a6a6a; font-size: 11px; cursor: pointer; font-family: 'Crimson Text', serif; user-select: none; }
   .tag-toggle.active { border-color: var(--red); background: rgba(200,0,0,0.2); color: white; }
-
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   .field-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   .field label { display: block; font-size: 10px; color: #6a2020; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Cinzel', serif; }
   .field select, .field input[type="date"] { width: 100%; border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: 'Crimson Text', serif; background: #0a0000; border: 1px solid #1a0000; color: #aa5555; }
-  
-  /* Checklist */
   .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; color: #aaa; }
   .check-item:hover { color: white; }
   .check-item input { accent-color: var(--red); width: 16px; height: 16px; cursor: pointer; }
-
   .field textarea { width: 100%; background: #0a0000; border: 1px solid #1a0000; color: #f0dada; border-radius: 8px; padding: 10px 12px; font-size: 13px; resize: vertical; font-family: 'Crimson Text', serif; }
   .field textarea:focus { border-color: var(--red-dim); outline: none; }
-  
   .save-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #7a0000, #cc0000); border: none; border-radius: 8px; color: white; font-size: 14px; cursor: pointer; letter-spacing: 1px; font-family: 'Cinzel', serif; margin-top: 16px; transition: 0.2s; }
   .save-btn:hover { box-shadow: 0 0 15px rgba(200,0,0,0.4); }
-
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: #2a0000; border-radius: 3px; }
@@ -263,22 +144,14 @@
   </div>
 
   <div id="view-board"><div class="board" id="board-cols"></div></div>
-  
-  <div id="view-table" class="hidden">
-    <div class="table-wrap">
-      <table id="main-table">
-        <thead><tr>
-          <th onclick="toggleSort('videoNum')"># <span id="sort-videoNum"></span></th>
-          <th onclick="toggleSort('format')">Format <span id="sort-format"></span></th>
-          <th onclick="toggleSort('title')">Title <span id="sort-title"></span></th>
-          <th onclick="toggleSort('status')">Status <span id="sort-status"></span></th>
-          <th>Progress</th>
-          <th onclick="toggleSort('publishDate')">Live Date <span id="sort-publishDate"></span></th>
-        </tr></thead>
-        <tbody id="table-body"></tbody>
-      </table>
-    </div>
-  </div>
+  <div id="view-table" class="hidden"><div class="table-wrap"><table id="main-table"><thead><tr>
+    <th onclick="toggleSort('videoNum')"># <span id="sort-videoNum"></span></th>
+    <th onclick="toggleSort('format')">Format <span id="sort-format"></span></th>
+    <th onclick="toggleSort('title')">Title <span id="sort-title"></span></th>
+    <th onclick="toggleSort('status')">Status <span id="sort-status"></span></th>
+    <th>Progress</th>
+    <th onclick="toggleSort('publishDate')">Live Date <span id="sort-publishDate"></span></th>
+  </tr></thead><tbody id="table-body"></tbody></table></div></div>
   
   <div id="view-calendar" class="hidden">
     <div class="cal-nav"><button onclick="changeMonth(-1)">‹</button><span class="cal-month" id="cal-month-label"></span><button onclick="changeMonth(1)">›</button></div>
@@ -291,7 +164,7 @@
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL remains the same -->
 <div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-header">
@@ -299,9 +172,7 @@
       <span class="badge" id="m-type"></span>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
-    
     <input type="text" id="m-title" class="m-title-input" placeholder="Name this entity..." />
-    
     <div class="field-grid">
       <div class="field"><label>Status</label><select id="m-status" onchange="modalUpdate('status', this.value)"></select></div>
       <div class="field"><label>Content Type</label>
@@ -310,7 +181,6 @@
         </select>
       </div>
     </div>
-
     <div class="modal-section-title">Format & Platforms</div>
     <div class="tag-group" id="m-format-group">
       <div class="tag-toggle" onclick="toggleModalFormat('Long')" id="fmt-long">Long-Form</div>
@@ -321,14 +191,12 @@
       <div class="tag-toggle" onclick="toggleModalPlat('IG')" id="plt-IG">Instagram</div>
       <div class="tag-toggle" onclick="toggleModalPlat('TT')" id="plt-TT">TikTok</div>
     </div>
-
     <div class="modal-section-title">Production Workflow</div>
     <div class="field-grid-3">
       <div class="field"><label style="color:var(--gold)">Script By</label><input type="date" id="m-script-date" /></div>
       <div class="field"><label style="color:var(--green)">Film By</label><input type="date" id="m-film-date" /></div>
       <div class="field"><label style="color:var(--red)">Live Date</label><input type="date" id="m-date" /></div>
     </div>
-
     <div class="modal-section-title">Tasks</div>
     <div class="checklist">
       <label class="check-item"><input type="checkbox" id="chk-script" /> Script / Outline</label>
@@ -336,11 +204,7 @@
       <label class="check-item"><input type="checkbox" id="chk-audio" /> Audio / SFX Mixed</label>
       <label class="check-item"><input type="checkbox" id="chk-seo" /> SEO / Description</label>
     </div>
-
-    <div class="field">
-      <label>Grimoire Notes</label>
-      <textarea id="m-notes" rows="3" placeholder="Ideas, references, script fragments..."></textarea>
-    </div>
+    <div class="field"><label>Grimoire Notes</label><textarea id="m-notes" rows="3" placeholder="Ideas, references, script fragments..."></textarea></div>
     <button class="save-btn" onclick="saveModal()">Seal the Binding (Save)</button>
   </div>
 </div>
@@ -369,59 +233,61 @@ let sortAsc = true;
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let modalId = null;
-
-// Temporary variables for modal state
 let mFormat = 'Long';
 let mPlats = new Set();
 
-// ─── DATA MANAGEMENT ─────────────────────────────────────────
+function buildInitialVideos() {
+  const RAW = [
+    ['Bhangarh Fort Curse','Tumbbad','Why is fear addictive?'],
+    ['Kuldhara Ghost Village','Stree','Why do we enjoy jump scares?'],
+    ['Dow Hill Kurseong Hauntings','Pari','Why are women drawn to horror?'],
+    ['Dumas Beach Spirits','Bulbbul','Why do horror films use silence?'],
+    ['Ramoji Film City Incidents','Bhoot','Why do we fear the dark?'],
+    ['Shaniwarwada Ghost','13B','Why do haunted places attract us?'],
+    ['GP Block Meerut Ghosts','Raat','Why do we believe in ghosts?'],
+    ['Jatinga Mystery','Pizza (Tamil)','Why are mirrors scary?'],
+    ['Tunnel 33 Shimla','Aval (Tamil)','Why does music make horror intense?'],
+    ['Lambi Dehar Mines','Game Over','Why do shadows scare us?'],
+    ['Raj Kiran Hotel','Chhorii','Why do we watch horror at night?'],
+    ['Agrasen Ki Baoli','Maya (Tamil)','Why do real stories scare more?'],
+    ['Delhi Cantonment','Ezra (Malayalam)','Why do children fear differently?'],
+    ['Savoy Hotel Mussoorie','Bramayugam','Why do we feel watched?'],
+    ['South Park Cemetery','Kanchana','Why are abandoned places creepy?'],
+    ['Kalpalli Cemetery','Arundhati','Why does uncertainty create fear?'],
+    ['Malcha Mahal','Lapachhapi','Why do rituals calm fear?'],
+    ['Mukesh Mills Mumbai','Ragini MMS','Why does horror stay in memory?'],
+    ['Brij Raj Bhavan','1920','Why do we imagine ghosts?'],
+    ["Writer's Building",'1920 Evil Returns','Why does fear spread socially?'],
+  ];
+  const vs = []; let id = 1;
+  RAW.forEach(([story, review, why], i) => {
+    ['A','B','C'].forEach((type, ti) => {
+      vs.push({
+        id: id++, videoNum: (i*3)+ti+1, type, title: [story,review,why][ti], status:'Idea', 
+        format:'Long', platforms:['YT'], tasks:{script:false,thumb:false,audio:false,seo:false},
+        publishDate:'', scriptDate:'', filmDate:'', editDate:'', notes:''
+      });
+    });
+  });
+  return vs;
+}
+
 function loadData() {
   try {
     let s = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('horror-grimoire-v2') || localStorage.getItem('horror-grimoire-v1');
     if (s) {
       let parsed = JSON.parse(s);
-      // Migration to v3
-      return parsed.map(v => ({
-        ...v,
-        status: v.status === 'Filming' ? 'To Film' : (v.status === 'Editing' ? 'To Edit' : v.status),
-        format: v.format || 'Long',
-        platforms: v.platforms || ['YT'],
-        tasks: v.tasks || { script: v.scriptWritten||false, thumb: false, audio: false, seo: false },
-        scriptDate: v.scriptDate || '', filmDate: v.filmDate || '', editDate: v.editDate || ''
-      }));
+      return parsed.map(v => ({ ...v, status: v.status === 'Filming' ? 'To Film' : (v.status === 'Editing' ? 'To Edit' : v.status), format: v.format || 'Long', platforms: v.platforms || ['YT'], tasks: v.tasks || { script: v.scriptWritten||false, thumb: false, audio: false, seo: false }, scriptDate: v.scriptDate || '', filmDate: v.filmDate || '', editDate: v.editDate || '' }));
     }
   } catch(e) { console.error("Load error", e); }
-  return buildInitialVideos(); // Only runs if completely blank
-}
-
-function buildInitialVideos() {
-  // Original 60 ideas
-  const RAW = [
-    ['Bhangarh Fort Curse','Tumbbad','Why is fear addictive?'],
-    ['Kuldhara Ghost Village','Stree','Why do we enjoy jump scares?'],
-    // ... shortened for brevity, keeping skeleton
-  ];
-  const vs = []; let id = 1;
-  for (let b = 0; b < 1; b++) {
-    RAW.forEach(([story, review, why], i) => {
-      ['A','B','C'].forEach((type, ti) => {
-        vs.push({
-          id: id++, videoNum: (i*3)+ti+1, type, title: [story,review,why][ti], status:'Idea', 
-          format:'Long', platforms:['YT'], tasks:{script:false,thumb:false,audio:false,seo:false},
-          publishDate:'', scriptDate:'', filmDate:'', editDate:'', notes:''
-        });
-      });
-    });
-  }
-  return vs;
+  return buildInitialVideos();
 }
 
 function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(videos)); }
 
 videos = loadData();
-saveData(); // Commit migration
+saveData();
 
-// ─── EXPORT / IMPORT ─────────────────────────────────────────
 function exportData() {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(videos));
   const el = document.createElement('a');
@@ -429,6 +295,7 @@ function exportData() {
   el.setAttribute("download", "horror_grimoire_backup.json");
   document.body.appendChild(el); el.click(); el.remove();
 }
+
 function importData(e) {
   const file = e.target.files[0];
   if(!file) return;
@@ -440,68 +307,39 @@ function importData(e) {
   reader.readAsText(file);
 }
 
-// ─── UTILS ───────────────────────────────────────────────────
-function getProgress(v) {
-  const t = v.tasks; 
-  return ((t.script?1:0) + (t.thumb?1:0) + (t.audio?1:0) + (t.seo?1:0)) / 4 * 100;
-}
+function getProgress(v) { const t = v.tasks; return ((t.script?1:0) + (t.thumb?1:0) + (t.audio?1:0) + (t.seo?1:0)) / 4 * 100; }
 
 function createQuickIdea() {
   const newId = videos.length > 0 ? Math.max(...videos.map(v => v.id)) + 1 : 1;
   const newNum = videos.length > 0 ? Math.max(...videos.map(v => v.videoNum)) + 1 : 1;
-  
-  videos.push({
-    id: newId, videoNum: newNum, type: 'A', title: 'New Unnamed Idea', status: 'Idea',
-    format: 'Short', platforms: ['YT','IG','TT'], 
-    tasks: {script:false,thumb:false,audio:false,seo:false},
-    publishDate: '', scriptDate: '', filmDate: '', editDate: '', notes: ''
-  });
-  saveData();
-  switchTab('board');
-  openModal(newId);
-  // Auto-focus title
-  setTimeout(()=> document.getElementById('m-title').select(), 50);
+  videos.push({ id: newId, videoNum: newNum, type: 'A', title: 'New Unnamed Idea', status: 'Idea', format: 'Short', platforms: ['YT','IG','TT'], tasks: {script:false,thumb:false,audio:false,seo:false}, publishDate: '', scriptDate: '', filmDate: '', editDate: '', notes: '' });
+  saveData(); switchTab('board'); openModal(newId); setTimeout(()=> document.getElementById('m-title').select(), 50);
 }
 
-function handleSearch() {
-  searchQuery = document.getElementById('searchInput').value.toLowerCase();
-  render();
-}
-
+function handleSearch() { searchQuery = document.getElementById('searchInput').value.toLowerCase(); render(); }
 function filtered() {
   let res = videos;
   if(activeFilter !== 'All') res = res.filter(v => v.type === activeFilter);
   if(activeFormatFilter !== 'All') res = res.filter(v => v.format === activeFormatFilter);
-  if(searchQuery) {
-    res = res.filter(v => v.title.toLowerCase().includes(searchQuery) || v.notes.toLowerCase().includes(searchQuery));
-  }
+  if(searchQuery) res = res.filter(v => v.title.toLowerCase().includes(searchQuery) || v.notes.toLowerCase().includes(searchQuery));
   return res;
 }
 
-// ─── TABS & FILTERS ──────────────────────────────────────────
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['board','table','prod-calendar','calendar'][i] === tab));
-  ['board','table','prod-calendar','calendar'].forEach(t => document.getElementById('view-'+t).classList.toggle('hidden', t !== tab));
-  render();
-}
+function switchTab(tab) { activeTab = tab; document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', ['board','table','prod-calendar','calendar'][i] === tab)); ['board','table','prod-calendar','calendar'].forEach(t => document.getElementById('view-'+t).classList.toggle('hidden', t !== tab)); render(); }
 function setFilter(f) { activeFilter = f; document.querySelectorAll('.filter-btn').forEach((b, i) => { if(i<4) b.classList.toggle('active', ['All','A','B','C'][i] === f); }); render(); }
 function setFormatFilter(f) { activeFormatFilter = f; document.querySelectorAll('.filter-btn').forEach((b, i) => { if(i>=4) b.classList.toggle('active', ['All','Long','Short'][i-4] === f); }); render(); }
 
-// ─── DRAG & DROP ─────────────────────────────────────────────
 function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
 function leaveDrop(e) { e.currentTarget.classList.remove('drag-over'); }
 function dragStart(e, id) { e.dataTransfer.setData("text/plain", id); e.currentTarget.style.opacity = '0.5'; }
 function dragEnd(e) { e.currentTarget.style.opacity = '1'; }
 function drop(e, status) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
   const id = parseInt(e.dataTransfer.getData("text/plain"));
   videos = videos.map(v => v.id === id ? {...v, status} : v);
   saveData(); renderStats(); renderBoard();
 }
 
-// ─── RENDERERS ───────────────────────────────────────────────
 function renderStats() {
   const el = document.getElementById('stats');
   let html = STATUSES.map(s => {
@@ -519,30 +357,17 @@ function renderBoard() {
     const c = STATUS_COLORS[status];
     const cols = vs.filter(v => v.status === status);
     const cards = cols.map(v => {
-      const t = TYPES[v.type];
-      const prog = getProgress(v);
+      const t = TYPES[v.type]; const prog = getProgress(v);
       const platStr = v.platforms.map(p => `<span class="badge plat">${p}</span>`).join('');
-      return `<div class="card" draggable="true" ondragstart="dragStart(event, ${v.id})" ondragend="dragEnd(event)" 
-        style="border-left-color:${c.dot};" onclick="openModal(${v.id})">
-        <div class="card-meta">
-          <span class="badge">#${v.videoNum} ${t.icon}</span>
-          <span class="badge ${v.format==='Short'?'short':''}">${v.format}</span>
-          ${platStr}
-        </div>
+      return `<div class="card" draggable="true" ondragstart="dragStart(event, ${v.id})" ondragend="dragEnd(event)" style="border-left-color:${c.dot};" onclick="openModal(${v.id})">
+        <div class="card-meta"><span class="badge">#${v.videoNum} ${t.icon}</span><span class="badge ${v.format==='Short'?'short':''}">${v.format}</span>${platStr}</div>
         <div class="card-title">${v.title}</div>
         <div class="progress-wrap"><div class="progress-bar" style="width:${prog}%; background:${prog===100?'var(--green)':'var(--red-light)'}"></div></div>
-        <div class="card-footer">
-          <span>${prog===100 ? '✅ Done' : '⏳ Tasks'}</span>
-          <span>${v.publishDate ? '📅 '+v.publishDate : ''}</span>
-        </div>
+        <div class="card-footer"><span>${prog===100 ? '✅ Done' : '⏳ Tasks'}</span><span>${v.publishDate ? '📅 '+v.publishDate : ''}</span></div>
       </div>`;
     }).join('');
     return `<div class="board-col" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)" ondrop="drop(event, '${status}')" style="border:1px solid ${c.border}">
-      <div class="col-header">
-        <span class="col-dot" style="background:${c.dot};box-shadow:0 0 8px ${c.dot}"></span>
-        <span class="col-title" style="color:${c.text}">${status}</span>
-        <span class="col-count">${cols.length}</span>
-      </div>
+      <div class="col-header"><span class="col-dot" style="background:${c.dot};box-shadow:0 0 8px ${c.dot}"></span><span class="col-title" style="color:${c.text}">${status}</span><span class="col-count">${cols.length}</span></div>
       <div class="cards">${cards}</div>
     </div>`;
   }).join('');
@@ -550,26 +375,19 @@ function renderBoard() {
 
 function toggleSort(col) {
   if(sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
-  ['videoNum','format','title','status','publishDate'].forEach(c => {
-    const el = document.getElementById('sort-'+c);
-    if(el) el.textContent = c === sortCol ? (sortAsc ? '▲' : '▼') : '';
-  });
+  ['videoNum','format','title','status','publishDate'].forEach(c => { const el = document.getElementById('sort-'+c); if(el) el.textContent = c === sortCol ? (sortAsc ? '▲' : '▼') : ''; });
   renderTable();
 }
 
 function renderTable() {
   const tbody = document.getElementById('table-body');
   let vs = [...filtered()];
-  
   vs.sort((a, b) => {
     let valA = a[sortCol], valB = b[sortCol];
     if(sortCol === 'videoNum') return sortAsc ? valA - valB : valB - valA;
-    if(sortCol === 'publishDate') {
-      if(!valA) return sortAsc ? 1 : -1; if(!valB) return sortAsc ? -1 : 1;
-    }
+    if(sortCol === 'publishDate') { if(!valA) return sortAsc ? 1 : -1; if(!valB) return sortAsc ? -1 : 1; }
     return sortAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
   });
-
   tbody.innerHTML = vs.map((v) => {
     const c = STATUS_COLORS[v.status]; const t = TYPES[v.type];
     const opts = STATUSES.map(s => `<option value="${s}" ${v.status===s?'selected':''}>${s}</option>`).join('');
@@ -578,19 +396,9 @@ function renderTable() {
       <td style="color:var(--text-muted)">${v.videoNum}</td>
       <td><span class="badge ${v.format==='Short'?'short':''}">${t.icon} ${v.format}</span></td>
       <td class="td-title">${v.title}</td>
-      <td onclick="event.stopPropagation()">
-        <select class="status-select" style="background:${c.bg};border:1px solid ${c.border};color:${c.text}"
-          onchange="videos.find(x=>x.id===${v.id}).status=this.value;saveData();renderStats();renderTable()">${opts}</select>
-      </td>
-      <td>
-        <div class="progress-wrap" style="width:60px;height:6px;background:#2a0000;display:inline-block;vertical-align:middle;">
-          <div class="progress-bar" style="width:${prog}%; background:${prog===100?'var(--green)':'var(--red)'}"></div>
-        </div>
-      </td>
-      <td onclick="event.stopPropagation()">
-        <input type="date" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;" 
-               value="${v.publishDate}" onchange="videos.find(x=>x.id===${v.id}).publishDate=this.value;saveData();render()" />
-      </td>
+      <td onclick="event.stopPropagation()"><select class="status-select" style="background:${c.bg};border:1px solid ${c.border};color:${c.text}" onchange="videos.find(x=>x.id===${v.id}).status=this.value;saveData();renderStats();renderTable()">${opts}</select></td>
+      <td><div class="progress-wrap" style="width:60px;height:6px;background:#2a0000;display:inline-block;vertical-align:middle;"><div class="progress-bar" style="width:${prog}%; background:${prog===100?'var(--green)':'var(--red)'}"></div></div></td>
+      <td onclick="event.stopPropagation()"><input type="date" style="background:transparent;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;" value="${v.publishDate}" onchange="videos.find(x=>x.id===${v.id}).publishDate=this.value;saveData();render()" /></td>
     </tr>`;
   }).join('');
 }
@@ -601,11 +409,9 @@ function renderCalendars() {
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date();
   const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('');
-
   if(activeTab === 'calendar') {
     document.getElementById('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
     let byDate = {}; videos.forEach(v => { if (v.publishDate) (byDate[v.publishDate] = byDate[v.publishDate] || []).push(v); });
-    
     let cells = Array(firstDay).fill('<div></div>');
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -615,15 +421,13 @@ function renderCalendars() {
       cells.push(`<div class="cal-cell${isToday?' today':''}"><div class="cal-day">${d}</div>${evs}${dayVs.length>3?`<div style="font-size:10px;color:#666">+${dayVs.length-3}</div>`:''}</div>`);
     }
     document.getElementById('cal-grid').innerHTML = dows + cells.join('');
-  } 
-  else if (activeTab === 'prod-calendar') {
+  } else if (activeTab === 'prod-calendar') {
     document.getElementById('prod-cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
     let tasksByDate = {};
     videos.forEach(v => {
       if (v.scriptDate) (tasksByDate[v.scriptDate] = tasksByDate[v.scriptDate] || []).push({ v, label:'Script', icon:'✍️', color:'#c8a820' });
       if (v.filmDate)   (tasksByDate[v.filmDate]   = tasksByDate[v.filmDate]   || []).push({ v, label:'Film', icon:'🎥', color:'#22a022' });
     });
-    
     let cells = Array(firstDay).fill('<div></div>');
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -638,47 +442,29 @@ function renderCalendars() {
 
 function changeMonth(dir) { calMonth += dir; if (calMonth < 0) { calMonth = 11; calYear--; } if (calMonth > 11) { calMonth = 0; calYear++; } render(); }
 
-// ─── MODAL ───────────────────────────────────────────────────
 function openModal(id) {
   const v = videos.find(x => x.id === id); if (!v) return;
   modalId = id; mFormat = v.format; mPlats = new Set(v.platforms);
-  
   document.getElementById('m-num').textContent = `Video #${v.videoNum}`;
   document.getElementById('m-type').textContent = `${TYPES[v.type].icon} ${TYPES[v.type].label}`;
   document.getElementById('m-title').value = v.title;
-  
   const sel = document.getElementById('m-status');
   sel.innerHTML = STATUSES.map(s => `<option value="${s}" ${v.status===s?'selected':''}>${s}</option>`).join('');
   modalUpdate('status', v.status);
-  
   document.getElementById('m-type-sel').value = v.type;
   document.getElementById('m-date').value = v.publishDate;
   document.getElementById('m-script-date').value = v.scriptDate || '';
   document.getElementById('m-film-date').value = v.filmDate || '';
-
   document.getElementById('chk-script').checked = v.tasks.script;
   document.getElementById('chk-thumb').checked = v.tasks.thumb;
   document.getElementById('chk-audio').checked = v.tasks.audio;
   document.getElementById('chk-seo').checked = v.tasks.seo;
-  
   document.getElementById('m-notes').value = v.notes;
-  
-  updateModalTags();
-  document.getElementById('modal-overlay').classList.remove('hidden');
+  updateModalTags(); document.getElementById('modal-overlay').classList.remove('hidden');
 }
 
-function closeModal(e) {
-  if (!e || e.target === document.getElementById('modal-overlay')) { document.getElementById('modal-overlay').classList.add('hidden'); modalId = null; }
-}
-
-function modalUpdate(field, value) {
-  if (field === 'status') {
-    const c = STATUS_COLORS[value];
-    const sel = document.getElementById('m-status');
-    sel.style.background = c.bg; sel.style.border = `1px solid ${c.border}`; sel.style.color = c.text;
-  }
-}
-
+function closeModal(e) { if (!e || e.target === document.getElementById('modal-overlay')) { document.getElementById('modal-overlay').classList.add('hidden'); modalId = null; } }
+function modalUpdate(field, value) { if (field === 'status') { const c = STATUS_COLORS[value]; const sel = document.getElementById('m-status'); sel.style.background = c.bg; sel.style.border = `1px solid ${c.border}`; sel.style.color = c.text; } }
 function toggleModalFormat(fmt) { mFormat = fmt; updateModalTags(); }
 function toggleModalPlat(plat) { if(mPlats.has(plat)) mPlats.delete(plat); else mPlats.add(plat); updateModalTags(); }
 function updateModalTags() {
@@ -691,36 +477,12 @@ function updateModalTags() {
 
 function saveModal() {
   if (!modalId) return;
-  videos = videos.map(v => v.id === modalId ? {
-    ...v,
-    title: document.getElementById('m-title').value,
-    status: document.getElementById('m-status').value,
-    type: document.getElementById('m-type-sel').value,
-    format: mFormat,
-    platforms: Array.from(mPlats),
-    publishDate: document.getElementById('m-date').value,
-    scriptDate: document.getElementById('m-script-date').value,
-    filmDate: document.getElementById('m-film-date').value,
-    tasks: {
-      script: document.getElementById('chk-script').checked,
-      thumb: document.getElementById('chk-thumb').checked,
-      audio: document.getElementById('chk-audio').checked,
-      seo: document.getElementById('chk-seo').checked
-    },
-    notes: document.getElementById('m-notes').value
-  } : v);
-  
-  saveData(); renderStats(); render();
-  document.getElementById('modal-overlay').classList.add('hidden'); modalId = null;
+  videos = videos.map(v => v.id === modalId ? { ...v, title: document.getElementById('m-title').value, status: document.getElementById('m-status').value, type: document.getElementById('m-type-sel').value, format: mFormat, platforms: Array.from(mPlats), publishDate: document.getElementById('m-date').value, scriptDate: document.getElementById('m-script-date').value, filmDate: document.getElementById('m-film-date').value, tasks: { script: document.getElementById('chk-script').checked, thumb: document.getElementById('chk-thumb').checked, audio: document.getElementById('chk-audio').checked, seo: document.getElementById('chk-seo').checked }, notes: document.getElementById('m-notes').value } : v);
+  saveData(); renderStats(); render(); document.getElementById('modal-overlay').classList.add('hidden'); modalId = null;
 }
 
-function render() {
-  if(activeTab==='board') renderBoard();
-  else if(activeTab==='table') renderTable();
-  else renderCalendars();
-}
-
-renderStats(); render(); toggleSort('videoNum'); // Init table sort
+function render() { if(activeTab==='board') renderBoard(); else if(activeTab==='table') renderTable(); else renderCalendars(); }
+renderStats(); render(); toggleSort('videoNum');
 </script>
 </body>
 </html>
