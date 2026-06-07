@@ -158,8 +158,8 @@
   .cal-day { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
   .cal-cell.today .cal-day { color: var(--red-light); font-weight: 600; }
   .cal-event {
-    font-size: 10px; border-radius: 3px; padding: 2px 4px;
-    margin-bottom: 2px; cursor: pointer; overflow: hidden;
+    font-size: 10px; border-radius: 3px; padding: 3px 5px;
+    margin-bottom: 3px; cursor: pointer; overflow: hidden;
     text-overflow: ellipsis; white-space: nowrap; transition: opacity 0.15s;
   }
   .cal-event:hover { opacity: 0.8; }
@@ -173,7 +173,7 @@
   }
   .modal {
     background: #0d0a1a; border: 1px solid #2a0000;
-    border-radius: 16px; padding: 32px; max-width: 500px; width: 100%;
+    border-radius: 16px; padding: 32px; max-width: 540px; width: 100%;
     box-shadow: 0 0 60px rgba(180,0,0,0.2);
     animation: fadeUp 0.2s ease;
   }
@@ -195,11 +195,11 @@
     outline: none;
     transition: border-color 0.2s;
   }
-  .m-title-input:focus, .m-title-input:hover {
-    border-bottom-color: var(--red-light);
-  }
+  .m-title-input:focus, .m-title-input:hover { border-bottom-color: var(--red-light); }
 
-  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .field-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  
   .field label { display: block; font-size: 10px; color: #6a2020; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Cinzel', serif; }
   .field select, .field input[type="date"] {
     width: 100%; border-radius: 6px; padding: 8px 10px; font-size: 13px;
@@ -241,7 +241,8 @@
   <div class="tabs">
     <button class="tab active" onclick="switchTab('board')">⬛ Board</button>
     <button class="tab" onclick="switchTab('table')">📋 Table</button>
-    <button class="tab" onclick="switchTab('calendar')">🗓 Calendar</button>
+    <button class="tab" onclick="switchTab('prod-calendar')">🛠 Prod Cal</button>
+    <button class="tab" onclick="switchTab('calendar')">🗓 Publish Cal</button>
   </div>
 
   <div class="filters" id="filters">
@@ -255,6 +256,8 @@
   <div id="view-table" class="hidden"><div class="table-wrap"><table id="main-table"><thead><tr>
     <th>#</th><th>Type</th><th>Title</th><th>Status</th><th>Script</th><th>Publish Date</th><th>Notes</th>
   </tr></thead><tbody id="table-body"></tbody></table></div></div>
+  
+  <!-- PUBLISH CALENDAR -->
   <div id="view-calendar" class="hidden">
     <div class="cal-nav">
       <button onclick="changeMonth(-1)">‹</button>
@@ -262,6 +265,16 @@
       <button onclick="changeMonth(1)">›</button>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- PRODUCTION CALENDAR -->
+  <div id="view-prod-calendar" class="hidden">
+    <div class="cal-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <span class="cal-month" id="prod-cal-month-label"></span>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-grid" id="prod-cal-grid"></div>
   </div>
 </div>
 
@@ -274,7 +287,6 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     
-    <!-- Title is now an editable text input -->
     <input type="text" id="m-title" class="m-title-input" placeholder="Enter video idea or title..." />
     
     <div class="field-grid">
@@ -283,24 +295,40 @@
         <select id="m-status" onchange="modalUpdate('status', this.value)"></select>
       </div>
       <div class="field">
-        <label>Publish Date</label>
-        <input type="date" id="m-date" oninput="modalUpdate('publishDate', this.value)" />
+        <label>Publish Date (Live)</label>
+        <input type="date" id="m-date" />
       </div>
     </div>
+
+    <!-- NEW: Production Workflow Dates -->
+    <div class="field-grid-3">
+      <div class="field">
+        <label style="color:#c8a820">Script By</label>
+        <input type="date" id="m-script-date" />
+      </div>
+      <div class="field">
+        <label style="color:#22a022">Film By</label>
+        <input type="date" id="m-film-date" />
+      </div>
+      <div class="field">
+        <label style="color:#ee2222">Edit By</label>
+        <input type="date" id="m-edit-date" />
+      </div>
+    </div>
+
     <div class="script-row" onclick="toggleModalScript()">
       <input type="checkbox" id="m-script" />
       <span class="script-label" id="m-script-label"></span>
     </div>
     <div class="field" style="margin-bottom:18px;">
       <label>Notes</label>
-      <textarea id="m-notes" rows="4" placeholder="Add your notes, ideas, references…"></textarea>
+      <textarea id="m-notes" rows="3" placeholder="Add your notes, ideas, references…"></textarea>
     </div>
     <button class="save-btn" onclick="saveModal()">Save Changes</button>
   </div>
 </div>
 
 <script>
-// Expanded Statuses to bifurcate Film vs Filmed and Edit vs Edited
 const STATUS_COLORS = {
   'Idea':      { bg:'#150000', border:'#7a0000', text:'#ff3333', dot:'#cc0000' },
   'Scripting': { bg:'#0a0a00', border:'#2a2a00', text:'#f0d060', dot:'#c8a820' },
@@ -336,7 +364,7 @@ const RAW = [
   ["Writer's Building Kolkata Spirits",'1920 Evil Returns','Why does fear spread socially?'],
 ];
 
-const STORAGE_KEY = 'horror-grimoire-v1';
+const STORAGE_KEY = 'horror-grimoire-v2'; // Bumped version to allow clean state transfer
 
 function buildVideos() {
   const vs = [];
@@ -345,7 +373,11 @@ function buildVideos() {
     RAW.forEach(([story, review, why], i) => {
       const num = b * 20 + i + 1;
       ['A','B','C'].forEach((type, ti) => {
-        vs.push({ id: id++, videoNum: num, type, title: [story,review,why][ti], status:'Idea', publishDate:'', scriptWritten:false, notes:'' });
+        vs.push({ 
+          id: id++, videoNum: num, type, title: [story,review,why][ti], 
+          status:'Idea', publishDate:'', scriptDate:'', filmDate:'', editDate:'', 
+          scriptWritten:false, notes:'' 
+        });
       });
     });
   }
@@ -354,13 +386,17 @@ function buildVideos() {
 
 function loadData() {
   try { 
-    const s = localStorage.getItem(STORAGE_KEY); 
+    // Attempt load from v2, fallback to v1 for migration
+    let s = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('horror-grimoire-v1'); 
     if (s) {
       let parsed = JSON.parse(s);
-      // Migration to prevent breaking if user already saved with old statuses
       parsed = parsed.map(v => {
         if(v.status === 'Filming') v.status = 'To Film';
         if(v.status === 'Editing') v.status = 'To Edit';
+        // Ensure new properties exist
+        v.scriptDate = v.scriptDate || '';
+        v.filmDate = v.filmDate || '';
+        v.editDate = v.editDate || '';
         return v;
       });
       return parsed;
@@ -405,12 +441,13 @@ function renderStats() {
 function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', ['board','table','calendar'][i] === tab);
+    t.classList.toggle('active', ['board','table','prod-calendar','calendar'][i] === tab);
   });
-  ['board','table','calendar'].forEach(t => {
+  ['board','table','prod-calendar','calendar'].forEach(t => {
     document.getElementById('view-'+t).classList.toggle('hidden', t !== tab);
   });
-  document.getElementById('filters').classList.toggle('hidden', tab === 'calendar');
+  // Hide filters for both calendars
+  document.getElementById('filters').classList.toggle('hidden', tab === 'calendar' || tab === 'prod-calendar');
   render();
 }
 
@@ -438,7 +475,7 @@ function renderBoard() {
           ${v.scriptWritten ? '<span class="badge script">✍ Script</span>' : ''}
         </div>
         <div class="card-title">${v.title}</div>
-        ${v.publishDate ? `<div class="card-date">📅 ${v.publishDate}</div>` : ''}
+        ${v.publishDate ? `<div class="card-date">🚀 Live: ${v.publishDate}</div>` : ''}
       </div>`;
     }).join('');
     return `<div class="board-col" style="border:1px solid ${c.border}">
@@ -474,15 +511,15 @@ function renderTable() {
         <input type="checkbox" ${v.scriptWritten?'checked':''} onchange="updateVideo(${v.id},{scriptWritten:this.checked});renderStats()" />
       </td>
       <td onclick="event.stopPropagation()">
-        <input type="date" value="${v.publishDate}" onchange="updateVideo(${v.id},{publishDate:this.value});renderCalendar()" />
+        <input type="date" value="${v.publishDate}" onchange="updateVideo(${v.id},{publishDate:this.value});render()" />
       </td>
       <td class="td-notes">${v.notes || '<span style="color:#2a0000">click to add…</span>'}</td>
     </tr>`;
   }).join('');
 }
 
-// ─── CALENDAR ────────────────────────────────────────────────
-function renderCalendar() {
+// ─── PUBLISH CALENDAR ────────────────────────────────────────
+function renderPublishCalendar() {
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
 
@@ -495,10 +532,9 @@ function renderCalendar() {
     if (v.publishDate) { (byDate[v.publishDate] = byDate[v.publishDate] || []).push(v); }
   });
 
-  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d =>
-    `<div class="cal-dow">${d}</div>`).join('');
-
+  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('');
   let cells = Array(firstDay).fill('<div></div>');
+  
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayVs = byDate[dateStr] || [];
@@ -515,11 +551,49 @@ function renderCalendar() {
   document.getElementById('cal-grid').innerHTML = dows + cells.join('');
 }
 
+// ─── PRODUCTION CALENDAR ─────────────────────────────────────
+function renderProdCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('prod-cal-month-label').textContent = `${months[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+
+  const tasksByDate = {};
+  videos.forEach(v => {
+    // Map the 3 workflow dates to specific colored event blocks
+    if (v.scriptDate) { (tasksByDate[v.scriptDate] = tasksByDate[v.scriptDate] || []).push({ v, label:'Script', icon:'✍️', border:'#c8a820', bg:'#1a1a00', color:'#f0d060' }); }
+    if (v.filmDate)   { (tasksByDate[v.filmDate]   = tasksByDate[v.filmDate]   || []).push({ v, label:'Film',   icon:'🎥', border:'#22a022', bg:'#051a05', color:'#60d060' }); }
+    if (v.editDate)   { (tasksByDate[v.editDate]   = tasksByDate[v.editDate]   || []).push({ v, label:'Edit',   icon:'✂️', border:'#ee2222', bg:'#1a0000', color:'#ff6666' }); }
+  });
+
+  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  let cells = Array(firstDay).fill('<div></div>');
+  
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTasks = tasksByDate[dateStr] || [];
+    const isToday = today.getDate()===d && today.getMonth()===calMonth && today.getFullYear()===calYear;
+    
+    const events = dayTasks.slice(0,4).map(t => {
+      return `<div class="cal-event" style="background:${t.bg};border:1px solid ${t.border};color:${t.color}"
+        onclick="openModal(${t.v.id})">${t.icon} #${t.v.videoNum} ${t.v.title}</div>`;
+    }).join('');
+    
+    const more = dayTasks.length > 4 ? `<div class="cal-more">+${dayTasks.length-4} more</div>` : '';
+    cells.push(`<div class="cal-cell${isToday?' today':''}"><div class="cal-day">${d}</div>${events}${more}</div>`);
+  }
+
+  document.getElementById('prod-cal-grid').innerHTML = dows + cells.join('');
+}
+
+// Month Navigation (Shared between both calendars)
 function changeMonth(dir) {
   calMonth += dir;
   if (calMonth < 0) { calMonth = 11; calYear--; }
   if (calMonth > 11) { calMonth = 0; calYear++; }
-  renderCalendar();
+  render(); // Will render whichever calendar is currently active
 }
 
 // ─── MODAL ───────────────────────────────────────────────────
@@ -529,19 +603,26 @@ function openModal(id) {
   modalId = id;
   const t = TYPES[v.type];
   const c = STATUS_COLORS[v.status];
+  
   document.getElementById('m-num').textContent = `Video #${v.videoNum}`;
   document.getElementById('m-type').textContent = `${t.icon} ${t.label}`;
-  
-  // Set the editable title input value
   document.getElementById('m-title').value = v.title;
   
   const sel = document.getElementById('m-status');
   sel.innerHTML = STATUSES.map(s => `<option value="${s}" ${v.status===s?'selected':''}>${s}</option>`).join('');
   sel.style.background = c.bg; sel.style.border = `1px solid ${c.border}`; sel.style.color = c.text;
+  
+  // Dates
   document.getElementById('m-date').value = v.publishDate;
+  document.getElementById('m-script-date').value = v.scriptDate || '';
+  document.getElementById('m-film-date').value = v.filmDate || '';
+  document.getElementById('m-edit-date').value = v.editDate || '';
+
+  // Script Toggle
   document.getElementById('m-script').checked = v.scriptWritten;
   document.getElementById('m-script-label').textContent = v.scriptWritten ? '✍️ Script written!' : 'Script not written yet';
   document.getElementById('m-script-label').style.color = v.scriptWritten ? '#4ade80' : '#5a2a2a';
+  
   document.getElementById('m-notes').value = v.notes;
   document.getElementById('modal-overlay').classList.remove('hidden');
 }
@@ -555,8 +636,6 @@ function closeModal(e) {
 
 function modalUpdate(field, value) {
   if (!modalId) return;
-  const changes = {};
-  changes[field] = value;
   if (field === 'status') {
     const c = STATUS_COLORS[value];
     const sel = document.getElementById('m-status');
@@ -574,11 +653,13 @@ function toggleModalScript() {
 function saveModal() {
   if (!modalId) return;
   
-  // Update video details including the new title
   updateVideo(modalId, {
     title: document.getElementById('m-title').value,
     status: document.getElementById('m-status').value,
     publishDate: document.getElementById('m-date').value,
+    scriptDate: document.getElementById('m-script-date').value,
+    filmDate: document.getElementById('m-film-date').value,
+    editDate: document.getElementById('m-edit-date').value,
     scriptWritten: document.getElementById('m-script').checked,
     notes: document.getElementById('m-notes').value,
   });
@@ -589,11 +670,12 @@ function saveModal() {
   modalId = null;
 }
 
-// ─── RENDER ──────────────────────────────────────────────────
+// ─── RENDER CONTROLLER ───────────────────────────────────────
 function render() {
   if (activeTab === 'board') renderBoard();
   else if (activeTab === 'table') renderTable();
-  else renderCalendar();
+  else if (activeTab === 'calendar') renderPublishCalendar();
+  else if (activeTab === 'prod-calendar') renderProdCalendar();
 }
 
 renderStats();
