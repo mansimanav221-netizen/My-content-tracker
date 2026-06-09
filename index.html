@@ -1,1567 +1,531 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Mansi Project — Content Tracker</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=IM+Fell+English:ital@0;1&display=swap');
-
-  :root {
-    --black: #0a0a0a;
-    --deep: #111111;
-    --card: #1a1a1a;
-    --red: #8b0000;
-    --red-bright: #cc0000;
-    --red-dim: #3d0000;
-    --white: #f0ebe0;
-    --white-dim: #a09080;
-    --gold: #c9a84c;
-    --border: #2a2a2a;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--black);
-    color: var(--white);
-    font-family: 'Courier Prime', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* GRAIN OVERLAY */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0.3;
-  }
-
-  /* HEADER */
-  .header {
-    border-bottom: 1px solid var(--red);
-    padding: 20px 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--deep);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .header-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    letter-spacing: 0.15em;
-    color: var(--white);
-  }
-
-  .header-title span {
-    color: var(--red-bright);
-  }
-
-  .header-date {
-    font-size: 0.7rem;
-    color: var(--white-dim);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  /* NAV TABS */
-  .nav {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    background: var(--deep);
-    padding: 0 30px;
-    overflow-x: auto;
-  }
-
-  .nav-tab {
-    padding: 12px 24px;
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--white-dim);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-  }
-
-  .nav-tab:hover { color: var(--white); }
-  .nav-tab.active { color: var(--red-bright); border-bottom-color: var(--red-bright); }
-
-  /* MAIN CONTENT */
-  .main { padding: 30px; }
-
-  .section { display: none; }
-  .section.active { display: block; }
-
-  /* TODAY POPUP */
-  .today-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.3s ease;
-  }
-
-  .today-popup {
-    background: var(--deep);
-    border: 1px solid var(--red);
-    padding: 40px;
-    max-width: 560px;
-    width: 90%;
-    position: relative;
-    animation: slideUp 0.3s ease;
-  }
-
-  .today-popup::before {
-    content: '✦';
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--deep);
-    padding: 0 10px;
-    color: var(--red-bright);
-    font-size: 1.2rem;
-  }
-
-  .today-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
-    color: var(--white);
-    margin-bottom: 8px;
-    text-align: center;
-  }
-
-  .today-date {
-    text-align: center;
-    font-size: 0.7rem;
-    color: var(--white-dim);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 30px;
-  }
-
-  .today-tasks { list-style: none; }
-
-  .today-task {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.85rem;
-  }
-
-  .today-task:last-child { border-bottom: none; }
-
-  .task-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--red-bright);
-    margin-top: 4px;
-    flex-shrink: 0;
-  }
-
-  .task-dot.urgent { background: #ff4444; animation: pulse 1s infinite; }
-  .task-dot.done { background: #2a5a2a; }
-
-  .task-series {
-    font-size: 0.65rem;
-    color: var(--red-bright);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .task-time {
-    font-size: 0.65rem;
-    color: var(--white-dim);
-    margin-top: 2px;
-  }
-
-  .close-popup {
-    display: block;
-    width: 100%;
-    margin-top: 24px;
-    padding: 12px;
-    background: var(--red);
-    border: none;
-    color: var(--white);
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .close-popup:hover { background: var(--red-bright); }
-
-  /* PIPELINE */
-  .pipeline-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-  }
-
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    color: var(--white);
-  }
-
-  .series-filter {
-    display: flex;
-    gap: 8px;
-  }
-
-  .filter-btn {
-    padding: 6px 14px;
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--white-dim);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .filter-btn:hover, .filter-btn.active {
-    border-color: var(--red);
-    color: var(--red-bright);
-  }
-
-  /* KANBAN BOARD */
-  .kanban {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(180px, 1fr));
-    gap: 16px;
-    overflow-x: auto;
-    padding-bottom: 20px;
-  }
-
-  .kanban-col {
-    background: var(--deep);
-    border: 1px solid var(--border);
-    border-top: 2px solid var(--red-dim);
-    min-height: 400px;
-    padding: 16px 12px;
-  }
-
-  .kanban-col.live-col { border-top-color: #2a5a2a; }
-
-  .col-title {
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--white-dim);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .col-count {
-    background: var(--red-dim);
-    color: var(--red-bright);
-    padding: 2px 6px;
-    font-size: 0.6rem;
-    border-radius: 2px;
-  }
-
-  .live-col .col-count { background: #1a3a1a; color: #4a9a4a; }
-
-  /* CONTENT CARDS */
-  .content-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 12px;
-    margin-bottom: 10px;
-    cursor: grab;
-    transition: all 0.2s;
-    position: relative;
-  }
-
-  .content-card:active { cursor: grabbing; opacity: 0.7; }
-  .content-card:hover { border-color: var(--red); transform: translateY(-1px); }
-
-  .content-card.urgent { border-left: 3px solid #ff4444; }
-  .content-card.warning { border-left: 3px solid var(--gold); }
-
-  .card-series {
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-
-  .card-series.unfold { color: #8b6a4a; }
-  .card-series.reflect { color: #4a6a8b; }
-  .card-series.decode { color: var(--red-bright); }
-  .card-series.short { color: #6a8b4a; }
-
-  .card-title {
-    font-size: 0.8rem;
-    color: var(--white);
-    line-height: 1.3;
-    margin-bottom: 8px;
-  }
-
-  .card-ep {
-    font-size: 0.6rem;
-    color: var(--white-dim);
-    margin-bottom: 8px;
-  }
-
-  .card-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .card-time {
-    font-size: 0.6rem;
-    color: var(--white-dim);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .card-deadline {
-    font-size: 0.6rem;
-    padding: 2px 6px;
-    background: var(--red-dim);
-    color: var(--red-bright);
-  }
-
-  .card-deadline.urgent { background: #3d0000; color: #ff4444; animation: pulse 1.5s infinite; }
-
-  .card-actions {
-    display: flex;
-    gap: 4px;
-    margin-top: 8px;
-  }
-
-  .card-btn {
-    font-size: 0.55rem;
-    padding: 3px 8px;
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--white-dim);
-    cursor: pointer;
-    font-family: 'Courier Prime', monospace;
-    letter-spacing: 0.08em;
-    transition: all 0.2s;
-  }
-
-  .card-btn:hover { border-color: var(--red); color: var(--red-bright); }
-
-  .kanban-col.drag-over { border-color: var(--red-bright); background: rgba(139,0,0,0.1); }
-
-  /* ADD CARD */
-  .add-card {
-    border: 1px dashed var(--border);
-    padding: 10px;
-    text-align: center;
-    font-size: 0.65rem;
-    color: var(--white-dim);
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.1em;
-  }
-
-  .add-card:hover { border-color: var(--red); color: var(--red-bright); }
-
-  /* CALENDAR */
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 1px;
-    background: var(--border);
-    margin-bottom: 30px;
-  }
-
-  .cal-header {
-    background: var(--deep);
-    padding: 10px;
-    text-align: center;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--white-dim);
-  }
-
-  .cal-day {
-    background: var(--card);
-    min-height: 100px;
-    padding: 8px;
-    position: relative;
-    transition: background 0.2s;
-  }
-
-  .cal-day:hover { background: #222; }
-  .cal-day.today { background: var(--red-dim); }
-  .cal-day.posting-day { border-top: 2px solid var(--red); }
-
-  .cal-num {
-    font-size: 0.75rem;
-    color: var(--white-dim);
-    margin-bottom: 6px;
-  }
-
-  .cal-day.today .cal-num { color: var(--red-bright); font-weight: bold; }
-
-  .cal-event {
-    font-size: 0.6rem;
-    padding: 3px 6px;
-    margin-bottom: 3px;
-    cursor: pointer;
-    border-radius: 1px;
-  }
-
-  .cal-event.unfold { background: rgba(139,106,74,0.3); border-left: 2px solid #8b6a4a; color: #c9a06a; }
-  .cal-event.reflect { background: rgba(74,106,139,0.3); border-left: 2px solid #4a6a8b; color: #6a9ac9; }
-  .cal-event.decode { background: rgba(139,0,0,0.3); border-left: 2px solid var(--red); color: var(--red-bright); }
-  .cal-event.short { background: rgba(106,139,74,0.3); border-left: 2px solid #6a8b4a; color: #9ac96a; }
-
-  /* WEEKLY OVERVIEW */
-  .weekly-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 30px;
-  }
-
-  .weekly-day {
-    background: var(--deep);
-    border: 1px solid var(--border);
-    padding: 16px;
-  }
-
-  .weekly-day-title {
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--red-bright);
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  /* STATS */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 30px;
-  }
-
-  .stat-card {
-    background: var(--deep);
-    border: 1px solid var(--border);
-    padding: 20px;
-    text-align: center;
-  }
-
-  .stat-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    color: var(--red-bright);
-    display: block;
-  }
-
-  .stat-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--white-dim);
-    margin-top: 4px;
-  }
-
-  /* NOTEBOOK */
-  .notebook-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .notebook-section {
-    background: var(--deep);
-    border: 1px solid var(--border);
-    padding: 24px;
-  }
-
-  .notebook-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    color: var(--white);
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .notebook-add {
-    font-size: 0.65rem;
-    padding: 4px 10px;
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--white-dim);
-    cursor: pointer;
-    font-family: 'Courier Prime', monospace;
-    letter-spacing: 0.1em;
-    transition: all 0.2s;
-  }
-
-  .notebook-add:hover { border-color: var(--red); color: var(--red-bright); }
-
-  .note-item {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8rem;
-    line-height: 1.5;
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-  }
-
-  .note-item:last-child { border-bottom: none; }
-
-  .note-tag {
-    font-size: 0.55rem;
-    padding: 2px 6px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .note-tag.short { background: rgba(106,139,74,0.2); color: #6a8b4a; border: 1px solid #6a8b4a; }
-  .note-tag.unfold { background: rgba(139,106,74,0.2); color: #8b6a4a; border: 1px solid #8b6a4a; }
-  .note-tag.reflect { background: rgba(74,106,139,0.2); color: #4a6a8b; border: 1px solid #4a6a8b; }
-  .note-tag.decode { background: rgba(139,0,0,0.2); color: var(--red-bright); border: 1px solid var(--red); }
-  .note-tag.general { background: rgba(100,100,100,0.2); color: var(--white-dim); border: 1px solid var(--border); }
-
-  .note-delete {
-    margin-left: auto;
-    background: none;
-    border: none;
-    color: var(--white-dim);
-    cursor: pointer;
-    font-size: 0.7rem;
-    padding: 0 4px;
-    flex-shrink: 0;
-    transition: color 0.2s;
-  }
-
-  .note-delete:hover { color: var(--red-bright); }
-
-  /* FILMING DAY PLANNER */
-  .planner-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .planner-pool {
-    background: var(--deep);
-    border: 1px solid var(--border);
-    padding: 20px;
-    min-height: 300px;
-  }
-
-  .planner-title {
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--white-dim);
-    margin-bottom: 16px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .planner-session {
-    background: var(--deep);
-    border: 1px solid var(--red-dim);
-    padding: 20px;
-    min-height: 300px;
-  }
-
-  .planner-time {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
-
-  .time-tag {
-    font-size: 0.65rem;
-    padding: 4px 10px;
-    background: var(--red-dim);
-    color: var(--red-bright);
-    letter-spacing: 0.08em;
-  }
-
-  /* MODAL */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .modal {
-    background: var(--deep);
-    border: 1px solid var(--red);
-    padding: 32px;
-    width: 90%;
-    max-width: 480px;
-    animation: slideUp 0.2s ease;
-  }
-
-  .modal-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    margin-bottom: 24px;
-    color: var(--white);
-  }
-
-  .form-group { margin-bottom: 16px; }
-
-  .form-label {
-    display: block;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--white-dim);
-    margin-bottom: 6px;
-  }
-
-  .form-input, .form-select, .form-textarea {
-    width: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--white);
-    padding: 10px 12px;
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.8rem;
-    transition: border-color 0.2s;
-  }
-
-  .form-input:focus, .form-select:focus, .form-textarea:focus {
-    outline: none;
-    border-color: var(--red);
-  }
-
-  .form-select option { background: var(--card); }
-
-  .form-textarea { resize: vertical; min-height: 80px; }
-
-  .form-actions { display: flex; gap: 10px; margin-top: 24px; }
-
-  .btn-primary {
-    flex: 1;
-    padding: 12px;
-    background: var(--red);
-    border: none;
-    color: var(--white);
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .btn-primary:hover { background: var(--red-bright); }
-
-  .btn-secondary {
-    padding: 12px 20px;
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--white-dim);
-    font-family: 'Courier Prime', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-secondary:hover { border-color: var(--red); color: var(--red-bright); }
-
-  /* ANIMATIONS */
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: var(--black); }
-  ::-webkit-scrollbar-thumb { background: var(--red-dim); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--red); }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 24px 0;
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--white-dim);
-    font-size: 0.75rem;
-    font-style: italic;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Mansi Project | Content Grimoire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0d0d;
+            --text-main: #e0d6c8;
+            --text-muted: #8c857d;
+            --blood-red: #8a0303;
+            --blood-red-hover: #b30000;
+            --card-bg: #1a1a1a;
+            --border-color: #332b2b;
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 0%, #2a0808 0%, transparent 50%);
+        }
+
+        h1, h2, h3 { font-family: var(--font-heading); font-weight: 700; margin: 0; }
+
+        header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title { font-size: 1.8rem; color: var(--blood-red); text-shadow: 0 0 10px rgba(138, 3, 3, 0.5); }
+        
+        .controls button {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            margin-left: 10px;
+            font-family: var(--font-heading);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .controls button:hover {
+            background: var(--blood-red);
+            border-color: var(--blood-red);
+            box-shadow: 0 0 15px var(--blood-red);
+        }
+
+        /* Board Layout */
+        .board-wrapper {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .board-tier {
+            margin-bottom: 40px;
+        }
+
+        .tier-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--blood-red);
+            padding-bottom: 5px;
+            display: inline-block;
+        }
+
+        .board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            min-height: 300px;
+        }
+
+        .column {
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--border-color);
+            min-width: 280px;
+            max-width: 280px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            padding: 15px;
+            background: #111;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            font-family: var(--font-heading);
+            letter-spacing: 1px;
+        }
+
+        .drop-zone {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            min-height: 150px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            cursor: grab;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .card:active { cursor: grabbing; }
+        .card:hover { border-color: var(--blood-red); }
+
+        .card-type {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--blood-red);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .card-title { font-size: 1rem; margin-bottom: 10px; line-height: 1.4; }
+
+        .card-dates { font-size: 0.75rem; color: var(--text-muted); }
+        .date-alert { color: #ff4c4c; font-weight: bold; }
+
+        .edit-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .edit-btn:hover { color: white; }
+
+        /* Modals */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: #151515;
+            border: 1px solid var(--blood-red);
+            padding: 30px;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(138, 3, 3, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 { margin-bottom: 20px; color: var(--blood-red); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-muted); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: #0a0a0a;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            box-sizing: border-box;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-primary { background: var(--blood-red); color: white; border: none; padding: 10px 20px; cursor: pointer; font-family: var(--font-heading); }
+        .btn-primary:hover { background: var(--blood-red-hover); }
+        .btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 10px 20px; cursor: pointer; font-family: var(--font-heading); }
+
+        #todo-list { list-style: none; padding: 0; }
+        #todo-list li { margin-bottom: 10px; padding: 10px; border-left: 3px solid var(--blood-red); background: rgba(138, 3, 3, 0.1); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--blood-red); }
+    </style>
 </head>
 <body>
 
-<!-- TODAY POPUP -->
-<div class="today-overlay" id="todayOverlay">
-  <div class="today-popup">
-    <div class="today-title">Today's Tasks</div>
-    <div class="today-date" id="todayDate"></div>
-    <ul class="today-tasks" id="todayTasks"></ul>
-    <button class="close-popup" onclick="document.getElementById('todayOverlay').style.display='none'">
-      Begin the work ✦
-    </button>
-  </div>
-</div>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="header-title">The Mansi <span>Project</span> — Content Tracker</div>
-  <div class="header-date" id="headerDate"></div>
-</div>
-
-<!-- NAV -->
-<div class="nav">
-  <button class="nav-tab active" onclick="showSection('pipeline')">Pipeline</button>
-  <button class="nav-tab" onclick="showSection('calendar')">Calendar</button>
-  <button class="nav-tab" onclick="showSection('weekly')">This Week</button>
-  <button class="nav-tab" onclick="showSection('filmingday')">Filming Day</button>
-  <button class="nav-tab" onclick="showSection('notebook')">Notebook</button>
-  <button class="nav-tab" onclick="showSection('stats')">Stats</button>
-</div>
-
-<div class="main">
-
-  <!-- PIPELINE SECTION -->
-  <div class="section active" id="pipeline">
-    <div class="pipeline-header">
-      <div class="section-title" style="font-family:'Playfair Display',serif">Production Pipeline</div>
-      <div style="display:flex;gap:12px;align-items:center">
-        <div class="series-filter">
-          <button class="filter-btn active" onclick="filterCards('all',this)">All</button>
-          <button class="filter-btn" onclick="filterCards('unfold',this)">Unfold</button>
-          <button class="filter-btn" onclick="filterCards('reflect',this)">Reflect</button>
-          <button class="filter-btn" onclick="filterCards('decode',this)">Decode</button>
-          <button class="filter-btn" onclick="filterCards('short',this)">Shorts</button>
+    <header>
+        <div class="header-title">The Mansi Project</div>
+        <div class="controls">
+            <button onclick="openModal('idea-modal')">+ Summon Idea</button>
+            <button onclick="exportData()">Export Grimoire</button>
         </div>
-        <button class="btn-primary" style="padding:8px 16px;font-size:0.65rem" onclick="openAddModal()">+ Add Content</button>
-      </div>
-    </div>
+    </header>
 
-    <div class="kanban" id="kanban">
-      <div class="kanban-col" data-stage="script-needed" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title">Script Needed <span class="col-count" id="count-script-needed">0</span></div>
-        <div class="col-cards" id="col-script-needed"></div>
-        <div class="add-card" onclick="openAddModal('script-needed')">+ add</div>
-      </div>
-      <div class="kanban-col" data-stage="script-done" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title">Script Done <span class="col-count" id="count-script-done">0</span></div>
-        <div class="col-cards" id="col-script-done"></div>
-        <div class="add-card" onclick="openAddModal('script-done')">+ add</div>
-      </div>
-      <div class="kanban-col" data-stage="film-needed" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title">Film Needed <span class="col-count" id="count-film-needed">0</span></div>
-        <div class="col-cards" id="col-film-needed"></div>
-        <div class="add-card" onclick="openAddModal('film-needed')">+ add</div>
-      </div>
-      <div class="kanban-col" data-stage="filmed" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title">Filmed <span class="col-count" id="count-filmed">0</span></div>
-        <div class="col-cards" id="col-filmed"></div>
-        <div class="add-card" onclick="openAddModal('filmed')">+ add</div>
-      </div>
-      <div class="kanban-col" data-stage="edit-needed" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title">Edit Needed <span class="col-count" id="count-edit-needed">0</span></div>
-        <div class="col-cards" id="col-edit-needed"></div>
-        <div class="add-card" onclick="openAddModal('edit-needed')">+ add</div>
-      </div>
-      <div class="kanban-col" data-stage="edited" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title">Edited <span class="col-count" id="count-edited">0</span></div>
-        <div class="col-cards" id="col-edited"></div>
-        <div class="add-card" onclick="openAddModal('edited')">+ add</div>
-      </div>
-      <div class="kanban-col live-col" data-stage="live" ondragover="dragOver(event)" ondrop="drop(event,this)">
-        <div class="col-title" style="color:#4a9a4a">Live ✦ <span class="col-count" id="count-live">0</span></div>
-        <div class="col-cards" id="col-live"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CALENDAR SECTION -->
-  <div class="section" id="calendar">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <div class="section-title" style="font-family:'Playfair Display',serif">Content Calendar</div>
-      <div style="display:flex;gap:12px;align-items:center">
-        <button class="btn-secondary" style="padding:8px 16px;font-size:0.65rem" onclick="prevMonth()">← Prev</button>
-        <span style="font-size:0.8rem;letter-spacing:0.1em" id="calMonthLabel"></span>
-        <button class="btn-secondary" style="padding:8px 16px;font-size:0.65rem" onclick="nextMonth()">Next →</button>
-        <button class="btn-primary" style="padding:8px 16px;font-size:0.65rem" onclick="openScheduleModal()">+ Schedule</button>
-      </div>
-    </div>
-    <div class="calendar-grid" id="calendarGrid"></div>
-  </div>
-
-  <!-- WEEKLY SECTION -->
-  <div class="section" id="weekly">
-    <div style="margin-bottom:24px">
-      <div class="section-title" style="font-family:'Playfair Display',serif;margin-bottom:4px">This Week</div>
-      <div style="font-size:0.7rem;color:var(--white-dim)" id="weekRange"></div>
-    </div>
-    <div class="weekly-grid" id="weeklyGrid"></div>
-    <div class="divider"></div>
-    <div style="font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:16px">Upcoming Deadlines</div>
-    <div id="upcomingDeadlines"></div>
-  </div>
-
-  <!-- FILMING DAY PLANNER -->
-  <div class="section" id="filmingday">
-    <div style="margin-bottom:24px">
-      <div class="section-title" style="font-family:'Playfair Display',serif;margin-bottom:4px">Filming Day Planner</div>
-      <div style="font-size:0.7rem;color:var(--white-dim)">Drag cards from the pool into your session. Plan your shoot.</div>
-    </div>
-    <div class="planner-grid">
-      <div class="planner-pool" ondragover="dragOver(event)" ondrop="dropToPool(event)">
-        <div class="planner-title">Ready to Film — Pool</div>
-        <div id="filmPool"></div>
-      </div>
-      <div class="planner-session" ondragover="dragOver(event)" ondrop="dropToSession(event)">
-        <div class="planner-title" style="color:var(--red-bright)">Today's Filming Session</div>
-        <div id="filmSession"></div>
-        <div class="planner-time" id="sessionTime"></div>
-        <div style="margin-top:20px">
-          <button class="btn-primary" style="width:100%;margin-top:12px" onclick="markSessionFilmed()">Mark All as Filmed ✓</button>
+    <div class="board-wrapper">
+        <div class="board-tier">
+            <h2 class="tier-title">I. The Vault of Concepts</h2>
+            <div class="board" id="vault-board">
+                <div class="column">
+                    <div class="column-header">Rough Ideas</div>
+                    <div class="drop-zone" id="col-rough" ondragover="allowDrop(event)" ondrop="drop(event, 'col-rough')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">Unfold (Stories)</div>
+                    <div class="drop-zone" id="col-unfold" ondragover="allowDrop(event)" ondrop="drop(event, 'col-unfold')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">Reflect / Decode (Reviews)</div>
+                    <div class="drop-zone" id="col-reflect" ondragover="allowDrop(event)" ondrop="drop(event, 'col-reflect')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">Short Form (Why?)</div>
+                    <div class="drop-zone" id="col-shorts" ondragover="allowDrop(event)" ondrop="drop(event, 'col-shorts')"></div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- NOTEBOOK SECTION -->
-  <div class="section" id="notebook">
-    <div class="notebook-grid">
-      <div class="notebook-section">
-        <div class="notebook-title">
-          Shorts Ideas
-          <button class="notebook-add" onclick="openNoteModal('short')">+ idea</button>
+        <div class="board-tier">
+            <h2 class="tier-title">II. The Ritual (Production)</h2>
+            <div class="board" id="production-board">
+                <div class="column">
+                    <div class="column-header">To Be Scripted</div>
+                    <div class="drop-zone" id="col-to-script" ondragover="allowDrop(event)" ondrop="drop(event, 'col-to-script')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">Scripted</div>
+                    <div class="drop-zone" id="col-scripted" ondragover="allowDrop(event)" ondrop="drop(event, 'col-scripted')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">To Be Filmed</div>
+                    <div class="drop-zone" id="col-to-film" ondragover="allowDrop(event)" ondrop="drop(event, 'col-to-film')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">Filmed</div>
+                    <div class="drop-zone" id="col-filmed" ondragover="allowDrop(event)" ondrop="drop(event, 'col-filmed')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">To Be Edited</div>
+                    <div class="drop-zone" id="col-to-edit" ondragover="allowDrop(event)" ondrop="drop(event, 'col-to-edit')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header">Edited</div>
+                    <div class="drop-zone" id="col-edited" ondragover="allowDrop(event)" ondrop="drop(event, 'col-edited')"></div>
+                </div>
+                <div class="column">
+                    <div class="column-header" style="color: var(--blood-red);">Live</div>
+                    <div class="drop-zone" id="col-live" ondragover="allowDrop(event)" ondrop="drop(event, 'col-live')"></div>
+                </div>
+            </div>
         </div>
-        <div id="shortsNotes"></div>
-      </div>
-      <div class="notebook-section">
-        <div class="notebook-title">
-          Random Ideas
-          <button class="notebook-add" onclick="openNoteModal('general')">+ idea</button>
+    </div>
+
+    <div class="modal-overlay" id="todo-modal">
+        <div class="modal">
+            <h2>Daily Invocation</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Based on your calendar, here is what demands your attention today.</p>
+            <ul id="todo-list"></ul>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="closeModal('todo-modal')">I Am Ready</button>
+            </div>
         </div>
-        <div id="generalNotes"></div>
-      </div>
-      <div class="notebook-section">
-        <div class="notebook-title">
-          Unfold Ideas
-          <button class="notebook-add" onclick="openNoteModal('unfold')">+ idea</button>
+    </div>
+
+    <div class="modal-overlay" id="idea-modal">
+        <div class="modal">
+            <h2 id="modal-title">Summon Idea</h2>
+            <input type="hidden" id="card-id">
+            <div class="form-group">
+                <label>Title / Hook</label>
+                <textarea id="card-title-input" placeholder="e.g., Bhangarh Fort Curse..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Category (Section)</label>
+                <select id="card-type-input">
+                    <option value="Rough Idea">Rough Idea</option>
+                    <option value="Unfold">Unfold (Story)</option>
+                    <option value="Reflect/Decode">Reflect/Decode (Review)</option>
+                    <option value="Short Form">Short Form (Why?)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Target Go-Live Date</label>
+                <input type="date" id="card-date-input" onchange="calculateDates()">
+                <small style="color: var(--blood-red); display:block; margin-top:5px;">Scripting: -14 days | Filming: -7 days | Editing: -3 days</small>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('idea-modal')">Cancel</button>
+                <button class="btn-primary" onclick="saveCard()">Seal Fate</button>
+            </div>
         </div>
-        <div id="unfoldNotes"></div>
-      </div>
-      <div class="notebook-section">
-        <div class="notebook-title">
-          Reflect + Decode Ideas
-          <button class="notebook-add" onclick="openNoteModal('reflect')">+ idea</button>
-        </div>
-        <div id="reflectNotes"></div>
-      </div>
     </div>
-  </div>
 
-  <!-- STATS SECTION -->
-  <div class="section" id="stats">
-    <div style="margin-bottom:24px">
-      <div class="section-title" style="font-family:'Playfair Display',serif">Channel Stats</div>
-    </div>
-    <div class="stats-grid" id="statsGrid"></div>
-    <div class="divider"></div>
-    <div style="font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:16px">Episode Count by Series</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px" id="seriesStats"></div>
-  </div>
-
-</div>
-
-<!-- ADD CONTENT MODAL -->
-<div class="modal-overlay" id="addModal" style="display:none">
-  <div class="modal">
-    <div class="modal-title">Add Content</div>
-    <div class="form-group">
-      <label class="form-label">Title</label>
-      <input class="form-input" id="addTitle" placeholder="e.g. Bhangarh Fort / Why Is Fear Addictive">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Series</label>
-      <select class="form-select" id="addSeries">
-        <option value="unfold">Unfold</option>
-        <option value="reflect">Reflect</option>
-        <option value="decode">Decode</option>
-        <option value="short">Short</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Stage</label>
-      <select class="form-select" id="addStage">
-        <option value="script-needed">Script Needed</option>
-        <option value="script-done">Script Done</option>
-        <option value="film-needed">Film Needed</option>
-        <option value="filmed">Filmed</option>
-        <option value="edit-needed">Edit Needed</option>
-        <option value="edited">Edited</option>
-        <option value="live">Live</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Go Live Date</label>
-      <input class="form-input" id="addDeadline" type="date">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Est. Time (hrs)</label>
-      <input class="form-input" id="addTime" type="number" placeholder="e.g. 3" step="0.5">
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" onclick="closeModal('addModal')">Cancel</button>
-      <button class="btn-primary" onclick="addContent()">Add to Pipeline</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT CONTENT MODAL -->
-<div class="modal-overlay" id="editModal" style="display:none">
-  <div class="modal">
-    <div class="modal-title">Edit Content</div>
-    <input type="hidden" id="editId">
-    <div class="form-group">
-      <label class="form-label">Title</label>
-      <input class="form-input" id="editTitle">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Series</label>
-      <select class="form-select" id="editSeries">
-        <option value="unfold">Unfold</option>
-        <option value="reflect">Reflect</option>
-        <option value="decode">Decode</option>
-        <option value="short">Short</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Go Live Date</label>
-      <input class="form-input" id="editDeadline" type="date">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Est. Time (hrs)</label>
-      <input class="form-input" id="editTime" type="number" step="0.5">
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" onclick="deleteContent()">Delete</button>
-      <button class="btn-secondary" onclick="closeModal('editModal')">Cancel</button>
-      <button class="btn-primary" onclick="saveEdit()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- SCHEDULE MODAL -->
-<div class="modal-overlay" id="scheduleModal" style="display:none">
-  <div class="modal">
-    <div class="modal-title">Schedule Content</div>
-    <div class="form-group">
-      <label class="form-label">Select Content</label>
-      <select class="form-select" id="scheduleContent"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Go Live Date</label>
-      <input class="form-input" id="scheduleDate" type="date">
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" onclick="closeModal('scheduleModal')">Cancel</button>
-      <button class="btn-primary" onclick="scheduleContent()">Schedule</button>
-    </div>
-  </div>
-</div>
-
-<!-- NOTE MODAL -->
-<div class="modal-overlay" id="noteModal" style="display:none">
-  <div class="modal">
-    <div class="modal-title">Add Idea</div>
-    <input type="hidden" id="noteType">
-    <div class="form-group">
-      <label class="form-label">Your Idea</label>
-      <textarea class="form-textarea" id="noteText" placeholder="Write your idea here..."></textarea>
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" onclick="closeModal('noteModal')">Cancel</button>
-      <button class="btn-primary" onclick="addNote()">Save Idea</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ============ STATE ============
-let state = {
-  contents: [],
-  notes: [],
-  calMonth: new Date().getMonth(),
-  calYear: new Date().getFullYear(),
-  dragId: null,
-  filmSession: []
-};
-
-// Load from localStorage
-function loadState() {
-  const saved = localStorage.getItem('mansiTracker');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    state.contents = parsed.contents || [];
-    state.notes = parsed.notes || [];
-    state.filmSession = parsed.filmSession || [];
-  }
-}
-
-function saveState() {
-  localStorage.setItem('mansiTracker', JSON.stringify(state));
-}
-
-// ============ INIT ============
-function init() {
-  loadState();
-  setDates();
-  renderAll();
-  showTodayPopup();
-}
-
-function setDates() {
-  const now = new Date();
-  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-  document.getElementById('headerDate').textContent = now.toLocaleDateString('en-IN', opts);
-  document.getElementById('todayDate').textContent = now.toLocaleDateString('en-IN', opts);
-}
-
-function renderAll() {
-  renderPipeline();
-  renderCalendar();
-  renderWeekly();
-  renderFilmingDay();
-  renderNotebook();
-  renderStats();
-}
-
-// ============ SECTIONS ============
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
-  if (id === 'calendar') renderCalendar();
-  if (id === 'weekly') renderWeekly();
-  if (id === 'filmingday') renderFilmingDay();
-}
-
-// ============ TODAY POPUP ============
-function showTodayPopup() {
-  const today = new Date().toISOString().split('T')[0];
-  const tasks = [];
-  const now = new Date();
-
-  state.contents.forEach(c => {
-    if (!c.deadline) return;
-    const dl = new Date(c.deadline);
-    const diff = Math.ceil((dl - now) / (1000*60*60*24));
-
-    if (diff <= 0 && c.stage !== 'live') {
-      tasks.push({ title: c.title, series: c.series, stage: c.stage, urgent: true, time: c.estTime });
-    } else if (diff <= 3 && c.stage !== 'live') {
-      tasks.push({ title: c.title, series: c.series, stage: c.stage, urgent: false, time: c.estTime, days: diff });
-    }
-  });
-
-  const container = document.getElementById('todayTasks');
-
-  if (tasks.length === 0) {
-    container.innerHTML = '<li class="today-task"><div style="color:var(--white-dim);font-size:0.8rem;font-style:italic">No urgent tasks today. Keep creating.</div></li>';
-  } else {
-    container.innerHTML = tasks.map(t => `
-      <li class="today-task">
-        <div class="task-dot ${t.urgent ? 'urgent' : ''}"></div>
-        <div>
-          <div class="task-series">${t.series}</div>
-          <div style="font-size:0.82rem;color:var(--white)">${t.title}</div>
-          <div class="task-time">
-            ${t.urgent ? '⚠ OVERDUE — ' : `${t.days} day${t.days !== 1 ? 's' : ''} left — `}
-            Next: ${getNextStep(t.stage)}
-            ${t.time ? ` · ~${t.time}h` : ''}
-          </div>
-        </div>
-      </li>
-    `).join('');
-  }
-}
-
-function getNextStep(stage) {
-  const steps = {
-    'script-needed': 'Write script',
-    'script-done': 'Film it',
-    'film-needed': 'Film it',
-    'filmed': 'Edit it',
-    'edit-needed': 'Edit it',
-    'edited': 'Upload',
-    'live': 'Done ✓'
-  };
-  return steps[stage] || stage;
-}
-
-// ============ PIPELINE ============
-function renderPipeline(filter = 'all') {
-  const stages = ['script-needed','script-done','film-needed','filmed','edit-needed','edited','live'];
-
-  stages.forEach(stage => {
-    const col = document.getElementById(`col-${stage}`);
-    const cards = state.contents.filter(c => c.stage === stage && (filter === 'all' || c.series === filter));
-    col.innerHTML = '';
-
-    cards.forEach(c => {
-      col.appendChild(createCard(c));
-    });
-
-    document.getElementById(`count-${stage}`).textContent = cards.length;
-  });
-}
-
-function createCard(c) {
-  const div = document.createElement('div');
-  const now = new Date();
-  let urgency = '';
-  let deadlineHtml = '';
-
-  if (c.deadline && c.stage !== 'live') {
-    const dl = new Date(c.deadline);
-    const diff = Math.ceil((dl - now) / (1000*60*60*24));
-    if (diff <= 0) { urgency = 'urgent'; deadlineHtml = `<span class="card-deadline urgent">OVERDUE</span>`; }
-    else if (diff <= 3) { urgency = 'warning'; deadlineHtml = `<span class="card-deadline">${diff}d left</span>`; }
-    else { deadlineHtml = `<span class="card-deadline">${c.deadline}</span>`; }
-  }
-
-  const epNum = getEpNumber(c);
-
-  div.className = `content-card ${urgency}`;
-  div.draggable = true;
-  div.dataset.id = c.id;
-  div.innerHTML = `
-    <div class="card-series ${c.series}">${c.series.toUpperCase()} ${epNum ? `· EP.${epNum}` : ''}</div>
-    <div class="card-title">${c.title}</div>
-    <div class="card-meta">
-      ${deadlineHtml}
-      ${c.estTime ? `<span class="card-time">⏱ ${c.estTime}h</span>` : ''}
-    </div>
-    <div class="card-actions">
-      <button class="card-btn" onclick="openEditModal('${c.id}')">edit</button>
-      <button class="card-btn" onclick="moveCard('${c.id}','forward')">→ next</button>
-    </div>
-  `;
-
-  div.addEventListener('dragstart', e => {
-    state.dragId = c.id;
-    e.dataTransfer.effectAllowed = 'move';
-  });
-
-  return div;
-}
-
-function getEpNumber(c) {
-  const seriesCards = state.contents
-    .filter(x => x.series === c.series && x.stage === 'live')
-    .sort((a,b) => new Date(a.deadline||0) - new Date(b.deadline||0));
-  const idx = seriesCards.findIndex(x => x.id === c.id);
-  return idx >= 0 ? idx + 1 : null;
-}
-
-function moveCard(id, dir) {
-  const stages = ['script-needed','script-done','film-needed','filmed','edit-needed','edited','live'];
-  const c = state.contents.find(x => x.id === id);
-  if (!c) return;
-  const idx = stages.indexOf(c.stage);
-  if (dir === 'forward' && idx < stages.length - 1) c.stage = stages[idx + 1];
-  saveState();
-  renderAll();
-}
-
-function filterCards(filter, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderPipeline(filter);
-}
-
-// ============ DRAG AND DROP ============
-function dragOver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.add('drag-over');
-}
-
-function drop(e, col) {
-  e.preventDefault();
-  col.classList.remove('drag-over');
-  const stage = col.dataset.stage;
-  const c = state.contents.find(x => x.id === state.dragId);
-  if (c && stage) {
-    c.stage = stage;
-    saveState();
-    renderAll();
-  }
-}
-
-function dropToPool(e) {
-  e.preventDefault();
-  state.filmSession = state.filmSession.filter(id => id !== state.dragId);
-  saveState();
-  renderFilmingDay();
-}
-
-function dropToSession(e) {
-  e.preventDefault();
-  const c = state.contents.find(x => x.id === state.dragId);
-  if (c && (c.stage === 'film-needed' || c.stage === 'script-done') && !state.filmSession.includes(state.dragId)) {
-    state.filmSession.push(state.dragId);
-    saveState();
-    renderFilmingDay();
-  }
-}
-
-// ============ CALENDAR ============
-function renderCalendar() {
-  const grid = document.getElementById('calendarGrid');
-  const label = document.getElementById('calMonthLabel');
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-  label.textContent = `${months[state.calMonth]} ${state.calYear}`;
-
-  const first = new Date(state.calYear, state.calMonth, 1).getDay();
-  const total = new Date(state.calYear, state.calMonth + 1, 0).getDate();
-  const today = new Date();
-
-  let html = days.map(d => `<div class="cal-header">${d}</div>`).join('');
-
-  for (let i = 0; i < first; i++) html += '<div class="cal-day" style="opacity:0.2"></div>';
-
-  for (let d = 1; d <= total; d++) {
-    const date = new Date(state.calYear, state.calMonth, d);
-    const dateStr = date.toISOString().split('T')[0];
-    const isToday = d === today.getDate() && state.calMonth === today.getMonth() && state.calYear === today.getFullYear();
-    const dow = date.getDay();
-    const isPostingDay = dow === 1 || dow === 3 || dow === 5;
-
-    const events = state.contents.filter(c => c.deadline === dateStr);
-
-    html += `<div class="cal-day ${isToday ? 'today' : ''} ${isPostingDay ? 'posting-day' : ''}">
-      <div class="cal-num">${d}${isPostingDay ? ' ●' : ''}</div>
-      ${events.map(e => `<div class="cal-event ${e.series}" title="${e.title}">${e.title.substring(0,18)}${e.title.length > 18 ? '...' : ''}</div>`).join('')}
-    </div>`;
-  }
-
-  grid.innerHTML = html;
-}
-
-function prevMonth() {
-  if (state.calMonth === 0) { state.calMonth = 11; state.calYear--; }
-  else state.calMonth--;
-  renderCalendar();
-}
-
-function nextMonth() {
-  if (state.calMonth === 11) { state.calMonth = 0; state.calYear++; }
-  else state.calMonth++;
-  renderCalendar();
-}
-
-// ============ WEEKLY ============
-function renderWeekly() {
-  const now = new Date();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (now.getDay() === 0 ? 6 : now.getDay() - 1));
-
-  const postingDays = [
-    { name: 'Monday', date: new Date(monday), label: 'Decode' },
-    { name: 'Wednesday', date: new Date(monday.getTime() + 2*86400000), label: 'Unfold / Reflect' },
-    { name: 'Friday', date: new Date(monday.getTime() + 4*86400000), label: 'Decode' }
-  ];
-
-  const sunday = new Date(monday.getTime() + 6*86400000);
-  document.getElementById('weekRange').textContent = `${monday.toDateString()} — ${sunday.toDateString()}`;
-
-  const grid = document.getElementById('weeklyGrid');
-  grid.innerHTML = postingDays.map(pd => {
-    const dateStr = pd.date.toISOString().split('T')[0];
-    const scheduled = state.contents.filter(c => c.deadline === dateStr);
-    return `
-      <div class="weekly-day">
-        <div class="weekly-day-title">${pd.name} · ${pd.label}</div>
-        ${scheduled.length > 0
-          ? scheduled.map(c => `<div class="content-card" style="margin-bottom:8px">
-              <div class="card-series ${c.series}">${c.series}</div>
-              <div class="card-title">${c.title}</div>
-              <div style="font-size:0.6rem;color:var(--white-dim);margin-top:4px">Stage: ${c.stage}</div>
-            </div>`).join('')
-          : `<div class="empty-state" style="padding:20px 0">Nothing scheduled</div>`}
-      </div>
-    `;
-  }).join('');
-
-  // Upcoming deadlines
-  const upcoming = state.contents
-    .filter(c => c.deadline && c.stage !== 'live')
-    .sort((a,b) => new Date(a.deadline) - new Date(b.deadline))
-    .slice(0, 6);
-
-  document.getElementById('upcomingDeadlines').innerHTML = upcoming.length > 0
-    ? upcoming.map(c => {
-        const diff = Math.ceil((new Date(c.deadline) - now) / (1000*60*60*24));
-        return `<div class="content-card" style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
-          <div class="card-series ${c.series}" style="min-width:60px">${c.series}</div>
-          <div style="flex:1"><div class="card-title" style="font-size:0.8rem">${c.title}</div></div>
-          <div class="card-deadline ${diff <= 0 ? 'urgent' : ''}">${diff <= 0 ? 'OVERDUE' : `${diff}d`}</div>
-        </div>`;
-      }).join('')
-    : '<div class="empty-state">No upcoming deadlines</div>';
-}
-
-// ============ FILMING DAY ============
-function renderFilmingDay() {
-  const pool = state.contents.filter(c => (c.stage === 'film-needed' || c.stage === 'script-done') && !state.filmSession.includes(c.id));
-  const session = state.filmSession.map(id => state.contents.find(c => c.id === id)).filter(Boolean);
-
-  document.getElementById('filmPool').innerHTML = pool.length > 0
-    ? pool.map(c => `<div class="content-card" draggable="true" data-id="${c.id}" 
-        ondragstart="state.dragId='${c.id}'">
-        <div class="card-series ${c.series}">${c.series}</div>
-        <div class="card-title">${c.title}</div>
-        ${c.estTime ? `<div class="card-time" style="margin-top:6px">⏱ ~${c.estTime}h</div>` : ''}
-      </div>`).join('')
-    : '<div class="empty-state">No content ready to film</div>';
-
-  document.getElementById('filmSession').innerHTML = session.length > 0
-    ? session.map(c => `<div class="content-card" draggable="true" data-id="${c.id}"
-        ondragstart="state.dragId='${c.id}'">
-        <div class="card-series ${c.series}">${c.series}</div>
-        <div class="card-title">${c.title}</div>
-        ${c.estTime ? `<div class="card-time" style="margin-top:6px">⏱ ~${c.estTime}h</div>` : ''}
-      </div>`).join('')
-    : '<div class="empty-state">Drag cards here to plan your session</div>';
-
-  const totalTime = session.reduce((sum, c) => sum + (parseFloat(c.estTime) || 0), 0);
-  document.getElementById('sessionTime').innerHTML = session.length > 0
-    ? `<span class="time-tag">${session.length} videos</span><span class="time-tag">~${totalTime}h total</span>`
-    : '';
-}
-
-function markSessionFilmed() {
-  state.filmSession.forEach(id => {
-    const c = state.contents.find(x => x.id === id);
-    if (c) c.stage = 'filmed';
-  });
-  state.filmSession = [];
-  saveState();
-  renderAll();
-}
-
-// ============ NOTEBOOK ============
-function renderNotebook() {
-  ['short','general','unfold','reflect'].forEach(type => {
-    const notes = state.notes.filter(n => n.type === type);
-    const containerId = type === 'general' ? 'generalNotes' : type === 'short' ? 'shortsNotes' : type === 'unfold' ? 'unfoldNotes' : 'reflectNotes';
-    const container = document.getElementById(containerId);
-
-    container.innerHTML = notes.length > 0
-      ? notes.map(n => `
-          <div class="note-item">
-            <span class="note-tag ${n.type}">${n.type}</span>
-            <span style="flex:1">${n.text}</span>
-            <button class="note-delete" onclick="deleteNote('${n.id}')">✕</button>
-          </div>`).join('')
-      : '<div class="empty-state" style="padding:20px 0;font-size:0.75rem">No ideas yet. Add one.</div>';
-  });
-}
-
-// ============ STATS ============
-function renderStats() {
-  const total = state.contents.length;
-  const live = state.contents.filter(c => c.stage === 'live').length;
-  const inProgress = state.contents.filter(c => c.stage !== 'live' && c.stage !== 'script-needed').length;
-  const overdue = state.contents.filter(c => {
-    if (!c.deadline || c.stage === 'live') return false;
-    return new Date(c.deadline) < new Date();
-  }).length;
-
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><span class="stat-num">${total}</span><div class="stat-label">Total Content</div></div>
-    <div class="stat-card"><span class="stat-num" style="color:#4a9a4a">${live}</span><div class="stat-label">Live Episodes</div></div>
-    <div class="stat-card"><span class="stat-num" style="color:var(--gold)">${inProgress}</span><div class="stat-label">In Progress</div></div>
-    <div class="stat-card"><span class="stat-num" style="color:#ff4444">${overdue}</span><div class="stat-label">Overdue</div></div>
-  `;
-
-  const series = ['unfold','reflect','decode','short'];
-  document.getElementById('seriesStats').innerHTML = series.map(s => {
-    const liveCount = state.contents.filter(c => c.series === s && c.stage === 'live').length;
-    const totalCount = state.contents.filter(c => c.series === s).length;
-    return `<div class="stat-card">
-      <span class="stat-num card-series ${s}" style="font-size:1.8rem;font-family:'Playfair Display',serif">${liveCount}</span>
-      <div class="stat-label">${s} live</div>
-      <div style="font-size:0.6rem;color:var(--white-dim);margin-top:4px">${totalCount} total</div>
-    </div>`;
-  }).join('');
-}
-
-// ============ MODALS ============
-function openAddModal(stage = 'script-needed') {
-  document.getElementById('addStage').value = stage;
-  document.getElementById('addTitle').value = '';
-  document.getElementById('addDeadline').value = '';
-  document.getElementById('addTime').value = '';
-  document.getElementById('addModal').style.display = 'flex';
-}
-
-function addContent() {
-  const title = document.getElementById('addTitle').value.trim();
-  if (!title) return;
-
-  const c = {
-    id: Date.now().toString(),
-    title,
-    series: document.getElementById('addSeries').value,
-    stage: document.getElementById('addStage').value,
-    deadline: document.getElementById('addDeadline').value,
-    estTime: document.getElementById('addTime').value
-  };
-
-  state.contents.push(c);
-  saveState();
-  closeModal('addModal');
-  renderAll();
-}
-
-function openEditModal(id) {
-  const c = state.contents.find(x => x.id === id);
-  if (!c) return;
-  document.getElementById('editId').value = id;
-  document.getElementById('editTitle').value = c.title;
-  document.getElementById('editSeries').value = c.series;
-  document.getElementById('editDeadline').value = c.deadline || '';
-  document.getElementById('editTime').value = c.estTime || '';
-  document.getElementById('editModal').style.display = 'flex';
-}
-
-function saveEdit() {
-  const id = document.getElementById('editId').value;
-  const c = state.contents.find(x => x.id === id);
-  if (!c) return;
-  c.title = document.getElementById('editTitle').value.trim();
-  c.series = document.getElementById('editSeries').value;
-  c.deadline = document.getElementById('editDeadline').value;
-  c.estTime = document.getElementById('editTime').value;
-  saveState();
-  closeModal('editModal');
-  renderAll();
-}
-
-function deleteContent() {
-  const id = document.getElementById('editId').value;
-  state.contents = state.contents.filter(x => x.id !== id);
-  state.filmSession = state.filmSession.filter(x => x !== id);
-  saveState();
-  closeModal('editModal');
-  renderAll();
-}
-
-function openScheduleModal() {
-  const sel = document.getElementById('scheduleContent');
-  sel.innerHTML = state.contents
-    .filter(c => c.stage !== 'live')
-    .map(c => `<option value="${c.id}">${c.series.toUpperCase()} — ${c.title}</option>`)
-    .join('');
-  document.getElementById('scheduleModal').style.display = 'flex';
-}
-
-function scheduleContent() {
-  const id = document.getElementById('scheduleContent').value;
-  const date = document.getElementById('scheduleDate').value;
-  const c = state.contents.find(x => x.id === id);
-  if (c && date) { c.deadline = date; saveState(); renderAll(); }
-  closeModal('scheduleModal');
-}
-
-function openNoteModal(type) {
-  document.getElementById('noteType').value = type;
-  document.getElementById('noteText').value = '';
-  document.getElementById('noteModal').style.display = 'flex';
-}
-
-function addNote() {
-  const text = document.getElementById('noteText').value.trim();
-  if (!text) return;
-  state.notes.push({
-    id: Date.now().toString(),
-    type: document.getElementById('noteType').value,
-    text,
-    date: new Date().toISOString().split('T')[0]
-  });
-  saveState();
-  closeModal('noteModal');
-  renderNotebook();
-}
-
-function deleteNote(id) {
-  state.notes = state.notes.filter(n => n.id !== id);
-  saveState();
-  renderNotebook();
-}
-
-function closeModal(id) {
-  document.getElementById(id).style.display = 'none';
-}
-
-// ============ START ============
-init();
-</script>
+    <script>
+        // Pre-loaded initial sample data mapped from the provided file
+        const initialData = [
+            { id: 'id1', title: 'Story: Bhangarh Fort Curse (Rajasthan)', type: 'Unfold', status: 'col-unfold', liveDate: '' },
+            { id: 'id2', title: 'Review: Tumbbad', type: 'Reflect/Decode', status: 'col-reflect', liveDate: '' },
+            { id: 'id3', title: 'Why is fear addictive?', type: 'Short Form', status: 'col-shorts', liveDate: '' },
+            { id: 'id4', title: 'Story: Kuldhara Ghost Village', type: 'Unfold', status: 'col-unfold', liveDate: '' },
+            { id: 'id5', title: 'Review: Stree', type: 'Reflect/Decode', status: 'col-reflect', liveDate: '' },
+            { id: 'id6', title: 'Why do we enjoy jump scares?', type: 'Short Form', status: 'col-shorts', liveDate: '' },
+            // Adding a rough idea to demonstrate the column
+            { id: 'id7', title: 'Investigate the folklore of local village?', type: 'Rough Idea', status: 'col-rough', liveDate: '' }
+        ];
+
+        let cards = [];
+
+        // Initialize App
+        window.onload = function() {
+            const savedData = localStorage.getItem('mansiProjectCards');
+            if (savedData) {
+                cards = JSON.parse(savedData);
+            } else {
+                cards = initialData;
+                saveToStorage();
+            }
+            renderBoard();
+            generateDailyBrief();
+        };
+
+        function saveToStorage() {
+            localStorage.setItem('mansiProjectCards', JSON.stringify(cards));
+        }
+
+        // Render Kanban Board
+        function renderBoard() {
+            // Clear all zones
+            document.querySelectorAll('.drop-zone').forEach(zone => zone.innerHTML = '');
+
+            cards.forEach(card => {
+                const zone = document.getElementById(card.status);
+                if (zone) {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card';
+                    cardEl.draggable = true;
+                    cardEl.id = card.id;
+                    cardEl.ondragstart = drag;
+
+                    let dateHTML = '';
+                    if (card.liveDate) {
+                        dateHTML = `<div class="card-dates">Live: ${card.liveDate}</div>`;
+                    }
+
+                    cardEl.innerHTML = `
+                        <button class="edit-btn" onclick="editCard('${card.id}')">✎</button>
+                        <span class="card-type">${card.type}</span>
+                        <div class="card-title">${card.title}</div>
+                        ${dateHTML}
+                    `;
+                    zone.appendChild(cardEl);
+                }
+            });
+        }
+
+        // Drag and Drop Logic
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drop(ev, targetColumnId) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const cardIndex = cards.findIndex(c => c.id === data);
+            
+            if (cardIndex > -1) {
+                cards[cardIndex].status = targetColumnId;
+                saveToStorage();
+                renderBoard();
+                
+                // If moved back to Vault, auto update type based on column
+                if(targetColumnId === 'col-rough') cards[cardIndex].type = 'Rough Idea';
+                if(targetColumnId === 'col-unfold') cards[cardIndex].type = 'Unfold';
+                if(targetColumnId === 'col-reflect') cards[cardIndex].type = 'Reflect/Decode';
+                if(targetColumnId === 'col-shorts') cards[cardIndex].type = 'Short Form';
+                renderBoard();
+            }
+        }
+
+        // Modal Controls
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'idea-modal') {
+                document.getElementById('card-id').value = '';
+                document.getElementById('card-title-input').value = '';
+                document.getElementById('card-date-input').value = '';
+                document.getElementById('modal-title').innerText = 'Summon Idea';
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Edit existing card
+        function editCard(id) {
+            const card = cards.find(c => c.id === id);
+            if (card) {
+                document.getElementById('card-id').value = card.id;
+                document.getElementById('card-title-input').value = card.title;
+                document.getElementById('card-type-input').value = card.type;
+                document.getElementById('card-date-input').value = card.liveDate;
+                document.getElementById('modal-title').innerText = 'Edit Incantation';
+                document.getElementById('idea-modal').style.display = 'flex';
+            }
+        }
+
+        // Save new or edited card
+        function saveCard() {
+            const id = document.getElementById('card-id').value || 'id_' + Math.random().toString(36).substr(2, 9);
+            const title = document.getElementById('card-title-input').value;
+            const type = document.getElementById('card-type-input').value;
+            const liveDate = document.getElementById('card-date-input').value;
+
+            if(!title) return alert("A title is required for the ritual.");
+
+            // Determine default column if new based on type
+            let defaultStatus = 'col-rough';
+            if (type === 'Unfold') defaultStatus = 'col-unfold';
+            if (type === 'Reflect/Decode') defaultStatus = 'col-reflect';
+            if (type === 'Short Form') defaultStatus = 'col-shorts';
+
+            const existingIndex = cards.findIndex(c => c.id === id);
+            
+            if (existingIndex > -1) {
+                cards[existingIndex].title = title;
+                cards[existingIndex].type = type;
+                cards[existingIndex].liveDate = liveDate;
+            } else {
+                cards.push({ id, title, type, status: defaultStatus, liveDate });
+            }
+
+            saveToStorage();
+            renderBoard();
+            closeModal('idea-modal');
+        }
+
+        // Smart Daily Briefing Logic
+        function generateDailyBrief() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
+            let tasksFound = false;
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            cards.forEach(card => {
+                if (!card.liveDate || card.status === 'col-live') return;
+
+                const liveDate = new Date(card.liveDate);
+                const diffTime = liveDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                let taskText = null;
+
+                // Needs Scripting: 14 days out. Check if still in vault.
+                if (diffDays <= 14 && diffDays > 7 && ['col-rough', 'col-unfold', 'col-reflect', 'col-shorts', 'col-to-script'].includes(card.status)) {
+                    taskText = `Write Script: "${card.title}" (Live in ${diffDays} days)`;
+                }
+                // Needs Filming: 7 days out. Check if not filmed.
+                else if (diffDays <= 7 && diffDays > 3 && ['col-scripted', 'col-to-film'].includes(card.status)) {
+                    taskText = `Film: "${card.title}" (Live in ${diffDays} days)`;
+                }
+                // Needs Editing: 3 days out.
+                else if (diffDays <= 3 && diffDays > 0 && ['col-filmed', 'col-to-edit'].includes(card.status)) {
+                    taskText = `Edit: "${card.title}" (Live in ${diffDays} days)`;
+                }
+                // Missed Deadline / Post Now
+                else if (diffDays <= 0) {
+                    taskText = `URGENT POST / OVERDUE: "${card.title}" (Scheduled for ${card.liveDate})`;
+                }
+
+                if (taskText) {
+                    tasksFound = true;
+                    const li = document.createElement('li');
+                    li.innerText = taskText;
+                    list.appendChild(li);
+                }
+            });
+
+            if (!tasksFound) {
+                list.innerHTML = '<li>The spirits are quiet today. All tasks are on schedule.</li>';
+            }
+
+            document.getElementById('todo-modal').style.display = 'flex';
+        }
+
+        // Export data to JSON file
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cards, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", "mansi_project_grimoire.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+    </script>
 </body>
 </html>
