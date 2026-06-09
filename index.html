@@ -956,6 +956,81 @@ function render() {
 }
 
 renderStats(); render();
+
+// ─── DAILY BRIEFING ───────────────────────────────────────────
+function showDailyBriefing() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+  const pending = todos.filter(t => !t.done && t.dueDate);
+  const overdue = pending.filter(t => t.dueDate < todayStr);
+  const dueToday = pending.filter(t => t.dueDate === todayStr);
+  if (!overdue.length && !dueToday.length) return;
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);';
+  overlay.classList.add('briefing-overlay');
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#0e0000;border:1px solid #5a0000;border-radius:16px;padding:32px;max-width:480px;width:100%;box-shadow:0 0 80px rgba(180,0,0,0.3);animation:fadeUp 0.25s ease;max-height:85vh;overflow-y:auto;';
+
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h>=5&&h<12) return 'morning';
+    if (h>=12&&h<17) return 'afternoon';
+    if (h>=17&&h<21) return 'evening';
+    return 'night';
+  }
+
+  let html = `
+    <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:5px;color:#cc0000;text-transform:uppercase;margin-bottom:10px;">☽ Daily Briefing ☾</div>
+    <h2 style="font-family:'Cinzel',serif;font-weight:400;font-size:1.4rem;background:linear-gradient(135deg,#fff,#ff3333,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">Good ${getGreeting()}, Mansi</h2>
+    <p style="color:#6a3333;font-size:13px;font-style:italic;margin-bottom:24px;font-family:'Crimson Text',serif;">Here's what needs your attention today.</p>`;
+
+  if (overdue.length) {
+    html += `<div style="margin-bottom:18px;">
+      <div style="font-size:10px;letter-spacing:2px;color:#ff3333;text-transform:uppercase;font-family:'Cinzel',serif;margin-bottom:10px;">⚠ Overdue (${overdue.length})</div>`;
+    overdue.forEach(t => {
+      html += `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #2a0000;">
+        <span style="font-size:15px;flex-shrink:0;">🔴</span>
+        <div>
+          <div style="font-size:13px;color:#f0dada;font-family:'Crimson Text',serif;">${escHtml(t.text)}</div>
+          <div style="font-size:10px;color:#ff4444;margin-top:2px;">Was due ${t.dueDate}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (dueToday.length) {
+    html += `<div style="margin-bottom:18px;">
+      <div style="font-size:10px;letter-spacing:2px;color:#f0d060;text-transform:uppercase;font-family:'Cinzel',serif;margin-bottom:10px;">📅 Due Today (${dueToday.length})</div>`;
+    dueToday.forEach(t => {
+      html += `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #2a0000;">
+        <span style="font-size:15px;flex-shrink:0;">🟡</span>
+        <div style="font-size:13px;color:#f0dada;font-family:'Crimson Text',serif;">${escHtml(t.text)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += `<div style="display:flex;gap:10px;margin-top:22px;">
+    <button onclick="document.querySelector('.briefing-overlay').remove()"
+      style="flex:1;padding:11px;background:transparent;border:1px solid #3a0000;color:#aa5555;border-radius:8px;cursor:pointer;font-family:'Crimson Text',serif;font-size:13px;transition:border-color 0.2s;">
+      Dismiss
+    </button>
+    <button onclick="document.querySelector('.briefing-overlay').remove();switchTab('todo')"
+      style="flex:2;padding:11px;background:linear-gradient(135deg,#7a0000,#cc0000);border:none;color:#fff;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;">
+      Open To-Do ✦
+    </button>
+  </div>`;
+
+  box.innerHTML = html;
+  overlay.appendChild(box);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+setTimeout(showDailyBriefing, 600);
 </script>
 </body>
 </html>
